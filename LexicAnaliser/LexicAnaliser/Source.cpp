@@ -18,7 +18,7 @@ enum states {
 };
 
 bool IsOperation(char x) {
-	ifstream fin("C:\\Users\\USER\\source\\repos\\Compilator\\Files\\Operations.txt");
+	ifstream fin("D:\\IT_files\\Compilator\\Files\\Operations.txt");
 	char a;
 	for (a = fin.get(); !fin.eof(); fin.get(), a = fin.get()) {
 		if (a == x) {
@@ -29,7 +29,7 @@ bool IsOperation(char x) {
 }
 
 bool IsSign(char x) {
-	ifstream fin("C:\\Users\\USER\\source\\repos\\Compilator\\Files\\Signs.txt");
+	ifstream fin("D:\\IT_files\\Compilator\\Files\\Signs.txt");
 	char a;
 	for (a = fin.get(); !fin.eof(); fin.get(), a = fin.get()) {
 		if (a == x) {
@@ -40,7 +40,7 @@ bool IsSign(char x) {
 }
 
 bool IsWord(string s) {
-	ifstream fin("C:\\Users\\USER\\source\\repos\\Compilator\\Files\\Words.txt");
+	ifstream fin("D:\\IT_files\\Compilator\\Files\\Words.txt");
 	string a;
 	for (fin >> a; !fin.eof(); fin.get(), fin >> a) {
 		if (a == s) {
@@ -54,8 +54,8 @@ bool IsWord(string s) {
 }
 
 int main() {
-	ifstream fin("C:\\Users\\USER\\source\\repos\\Compilator\\Files\\Program.txt");
-	ofstream fout("C:\\Users\\USER\\source\\repos\\Compilator\\Files\\Code.txt");
+	ifstream fin("D:\\IT_files\\Compilator\\Files\\Program.txt");
+	ofstream fout("D:\\IT_files\\Compilator\\Files\\Code.txt");
 	char x, a;
 	string s;
 	states state = Start;
