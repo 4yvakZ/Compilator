@@ -11,7 +11,7 @@ struct Lex
 
 int main()
 {
-	ifstream Code("Code.txt");
+	ifstream Code("D\\IT_files\\Compilator\\Files\\Code.txt");
 
 	Lex *lexem = new Lex;
 	if (!Code.eof())
