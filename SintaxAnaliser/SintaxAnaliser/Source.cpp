@@ -4,8 +4,7 @@
 using namespace std;
 
 static ifstream Code("D:\\IT_files\\Compilator\\Files\\Code.txt");
-struct Lex
-{
+struct Lex{
 	int id;
 	string s;
 };
@@ -39,14 +38,12 @@ void Return();
 void Goto();
 void Label();
 
-void Get()
-{
+void Get(){
 	Code >> lexem->id;
 	Code >> lexem->s;
 	return;
 }
-void ERROR()
-{
+void ERROR(){
 	//а чёрт знает, что тут будет
 }
 
@@ -55,14 +52,11 @@ void ERROR()
 
 
 
-void Program()
-{
-	if (lexem->s == "<?php")
-	{
+void Program(){
+	if (lexem->s == "<?php"){
 		Get();
 		Operators();
-		if (lexem->s == ">")
-		{
+		if (lexem->s == ">"){
 			Get();
 			return;
 		}
@@ -71,13 +65,10 @@ void Program()
 	ERROR();
 }
 
-void Variable()
-{
-	if (lexem->s == "$")
-	{
+void Variable(){
+	if (lexem->s == "$"){
 		Get();
-		if (lexem->id == 2)
-		{
+		if (lexem->id == 2){
 			Get();
 			return;
 		}
@@ -86,36 +77,30 @@ void Variable()
 	ERROR();
 }
 
-void Operators()
-{
+void Operators(){
 	Operator();
 	return;
 }
-void Operator()
-{
+void Operator(){
 	return;
 }
 
-void Expression()
-{
+void Expression(){
 	NEExpression();//non-empty expression
 	Get();
 	return;
 }
-void NEExpression()
-{
+void NEExpression(){
 	Assignable();
 	Sign1();
 	NEExpression();
 	return;
 }
-void Assignable()
-{
+void Assignable(){
 
 }
 
-void Sign1()
-{
+void Sign1(){
 	if (lexem->s == "=" ||
 		lexem->s == "-=" ||
 		lexem->s == "*=" ||
@@ -127,153 +112,124 @@ void Sign1()
 		lexem->s == "|=" ||
 		lexem->s == "^=" ||
 		lexem->s == "<<=" ||
-		lexem->s == ">>=")
-	{
+		lexem->s == ">>="){
 		Get();
 		return;
 	}
 	ERROR();
 }
-void Sign2()
-{
-	if (lexem->s == "||")
-	{
+void Sign2(){
+	if (lexem->s == "||"){
 		Get();
 		return;
 	}
 	ERROR();
 }
-void Sign3()
-{
-	if (lexem->s == "&&")
-	{
+void Sign3(){
+	if (lexem->s == "&&"){
 		Get();
 		return;
 	}
 	ERROR();
 }
-void Sign4()
-{
-	if (lexem->s == "|")
-	{
+void Sign4(){
+	if (lexem->s == "|"){
 		Get();
 		return;
 	}
 	ERROR();
 }
-void Sign5()
-{
-	if (lexem->s == "^")
-	{
+void Sign5(){
+	if (lexem->s == "^"){
 		Get();
 		return;
 	}
 	ERROR();
 }
-void Sign6()
-{
-	if (lexem->s == "&")
-	{
+void Sign6(){
+	if (lexem->s == "&"){
 		Get();
 		return;
 	}
 	ERROR;
 }
-void Sign7()
-{
+void Sign7(){
 	if (lexem->s == "==" ||
 		lexem->s == "!=" ||
 		lexem->s == "===" ||
 		lexem->s == "!==" ||
-		lexem->s == "<=>")
-	{
+		lexem->s == "<=>"){
 		Get();
 		return;
 	}
 	ERROR();
 }
-void Sign8()
-{
+void Sign8(){
 	if (lexem->s == "<" ||
 		lexem->s == ">" ||
 		lexem->s == "<=" ||
-		lexem->s == ">=")
-	{
+		lexem->s == ">="){
 		Get();
 		return;
 	}
 	ERROR;
 }
-void Sign9()
-{
+void Sign9(){
 	if (lexem->s == "<<" ||
-		lexem->s == ">>")
-	{
+		lexem->s == ">>"){
 		Get();
 		return;
 	}
 	ERROR();
 }
-void Sign10()
-{
+void Sign10(){
 	if (lexem->s == "+" ||
 		lexem->s == "-" ||
-		lexem->s == ".")
-	{
+		lexem->s == "."){
 		Get();
 		return;
 	}
 	ERROR();
 }
-void Sign11()
-{
+void Sign11(){
 	if (lexem->s == "*" ||
 		lexem->s == "/" ||
-		lexem->s == "%")
-	{
+		lexem->s == "%"){
 		Get();
 		return;
 	}
 	ERROR();
 }
-void Sign12()
-{
-	if (lexem->s == "!")
-	{
+void Sign12(){
+	if (lexem->s == "!"){
 		Get();
 		return;
 	}
 	ERROR();
 }
-void Sign13()
-{
+void Sign13(){
 	if (lexem->s == "++" ||
-		lexem->s == "--")
-	{
+		lexem->s == "--"){
 		Get();
 		return;
 	}
 	ERROR();
 }
-void Sign14()
-{
-	if (lexem->s == "**")
-	{
+void Sign14(){
+	if (lexem->s == "**"){
 		Get();
 		return;
 	}
 	ERROR;
 }
 
-void Element()
-{
+void Element(){
 	Expression();
 	Get();
 	return;
 }
 
-void GotoAndChildren()
-{
+void GotoAndChildren(){
 	if (lexem->s == "return") { Get(); Return(); return; }
 	if (lexem->s == "break") { Get(); return; }
 	if (lexem->s == "continue") { Get(); return; }
@@ -281,34 +237,26 @@ void GotoAndChildren()
 	if (lexem->id == 2) { Get(); Label(); return; }
 	ERROR;
 }
-void Return()
-{
-	if (lexem->s == "return")
-	{
+void Return(){
+	if (lexem->s == "return"){
 		Get();
 		Expression();
 		return;
 	}
 }
-void Goto()
-{
-	if (lexem->s == "goto")
-	{
+void Goto(){
+	if (lexem->s == "goto"){
 		Get();
-		if (lexem->id == 2)
-		{
+		if (lexem->id == 2){
 			Get();
 			return;
 		}
 	}
 }
-void Label()
-{
-	if (lexem->id == 2)
-	{
+void Label(){
+	if (lexem->id == 2){
 		Get();
-		if (lexem->s == ":")
-		{
+		if (lexem->s == ":"){
 			Get();
 			return;
 		}
@@ -318,8 +266,7 @@ void Label()
 
 
 
-int main()
-{
+int main(){
 	Get();
 
 	system("pause");
