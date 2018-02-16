@@ -43,8 +43,14 @@ void Get(){
 	Code >> lexem->s;
 	return;
 }
-void ERROR(){
-	//а чёрт знает, что тут будет
+void ERROR(string s){
+	char x;
+	for (x = Code.get(); x != 7; x = Code.get()) {
+		for (; x != '\n'; x = Code.get());
+	}
+	int strings;
+	Code >> strings;
+	cout << "Ошибка в строке " << strings << "\nОжидалось: " << s << "\nПолучено: " << lexem->s;
 }
 
 
