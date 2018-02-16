@@ -111,13 +111,7 @@ void Priority5()
 }
 void Priority6()
 {
-	Priority7();
-	while (lexem->s == "&")
-	{
-		Sign6();
-		Priority7();
-	}
-	Get();
+
 }
 void Priority7()
 {
@@ -130,6 +124,7 @@ void Priority8()
 void Priority9()
 {
 
+}
 }
 void Priority10()
 {
