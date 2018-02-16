@@ -32,11 +32,27 @@ void Sign12();
 void Sign13();
 void Sign14();
 
+void Priority2();
+void Priority3();
+void Priority4();
+void Priority5();
+void Priority6();
+void Priority7();
+void Priority8();
+void Priority9();
+void Priority10();
+void Priority11();
+void Priority12();
+void Priority13();
+void Priority14();
+void Priority15();
+
 void Element();
 void GotoAndChildren();
 void Return();
 void Goto();
 void Label();
+void Assaignable();
 
 void Get(){
 	Code >> lexem->id;
@@ -53,13 +69,93 @@ void ERROR(string s){
 	cout << "Ошибка в строке " << strings << "\nОжидалось: " << s << "\nПолучено: " << lexem->s;
 }
 
+void Priority2()
+{
+	Priority3();
+	while (lexem->s == "||")
+	{
+		Sign2();
+		Priority3();
+	}
+	Get();
+}
+void Priority3()
+{
+	Priority4();
+	while (lexem->s == "&&")
+	{
+		Sign3();
+		Priority4();
+	}
+	Get();
+}
+void Priority4()
+{
+	Priority5();
+	while (lexem->s == "|")
+	{
+		Sign4();
+		Priority5();
+	}
+	Get();
+}
+void Priority5()
+{
+	Priority6();
+	while (lexem->s == "^")
+	{
+		Sign5();
+		Priority6();
+	}
+	Get();
+}
+void Priority6()
+{
+
+}
+void Priority7()
+{
+
+}
+void Priority8()
+{
+
+}
+void Priority9()
+{
+
+}
+void Priority10()
+{
+
+}
+void Priority11()
+{
+
+}
+void Priority12()
+{
+
+}
+void Priority13()
+{
+
+}
+void Priority14()
+{
+
+}
+void Priority15()
+{
+
+}
 
 
 
-
-
-void Program(){
-	if (lexem->s == "<?php"){
+void Program()
+{
+	if (lexem->s == "<?php") //!
+	{
 		Get();
 		Operators();
 		if (lexem->s == ">"){
@@ -96,17 +192,29 @@ void Expression(){
 	Get();
 	return;
 }
-void NEExpression(){
+void NEExpression()           ////////////////
+{
 	Assignable();
 	Sign1();
 	NEExpression();
+
 	return;
 }
-void Assignable(){
-
+void Assaignable()
+{
+	Variable();
+	while (lexem->s == "$")
+	{
+		Variable();
+	}
+	if (lexem->s == "[")
+	{
+		NEExpression();
+		if (lexem->s != "]") ERROR();
+	}
 }
-
-void Sign1(){
+void Sign1()
+{
 	if (lexem->s == "=" ||
 		lexem->s == "-=" ||
 		lexem->s == "*=" ||
