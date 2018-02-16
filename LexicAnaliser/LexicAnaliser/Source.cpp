@@ -19,9 +19,9 @@ enum states {
 
 bool IsOperation(char x) {
 	ifstream fin("D:\\IT_files\\Compilator\\Files\\Operations.txt");
-	char a;
-	for (a = fin.get(); !fin.eof(); fin.get(), a = fin.get()) {
-		if (a == x) {
+	string a;
+	for (fin >> a; a.length() < 2; fin >> a) {
+		if (a[0] == x) {
 			return true;
 		}
 	}
@@ -30,7 +30,7 @@ bool IsOperation(char x) {
 
 bool IsSign(char x) {
 	ifstream fin("D:\\IT_files\\Compilator\\Files\\Signs.txt");
-	char a;
+	int a;
 	for (a = fin.get(); !fin.eof(); fin.get(), a = fin.get()) {
 		if (a == x) {
 			return true;
@@ -39,18 +39,32 @@ bool IsSign(char x) {
 	return false;
 }
 
+bool IsFinalOperation(string s) {
+	ifstream fin("D:\\IT_files\\Compilator\\Files\\Operations.txt");
+	string a;
+	for (fin >> a; !fin.eof(); fin.get(), fin >> a) {
+		if (a == s) {
+			return false;
+		}
+	}
+	if (a == s) {
+		return false;
+	}
+	return true;
+}
+
 bool IsWord(string s) {
 	ifstream fin("D:\\IT_files\\Compilator\\Files\\Words.txt");
 	string a;
 	for (fin >> a; !fin.eof(); fin.get(), fin >> a) {
 		if (a == s) {
-			return true;
+			return false;
 		}
 	}
 	if (a == s) {
-		return true;
+		return false;
 	}
-	return false;
+	return true;
 }
 
 int main() {
@@ -58,14 +72,24 @@ int main() {
 	ofstream fout("D:\\IT_files\\Compilator\\Files\\Code.txt");
 	char x, a;
 	string s;
+	int strings = 0;
 	states state = Start;
-	for (; !fin.eof();) {
+	for (;;) {
 		switch (state) {
 		case Start:
 			x = fin.get();
-			if (x == EOF) return 1;
-			if (x == ' ' || x == '\n' || x == '	') {
+			if (x == EOF) {
+				strings++;
+				fout << "7 " << strings << "\n";
+				return 1;
+			}
+			else if (x == ' ' || x == '	') {
 				state = Start;
+			}
+			else if(x == '\n'){
+				state = Start;
+				strings++;
+				fout << "7 " << strings << "\n";
 			}
 			else if (x == '/') {
 				state = G;
@@ -76,7 +100,7 @@ int main() {
 			else if (isdigit(x)) {
 				state = B;
 			}
-			else if (x == '"' || x == 39) {
+			else if (x == '"') {
 				state = E;
 			}
 			else if (IsOperation(x)) {
@@ -92,18 +116,15 @@ int main() {
 			}
 			break;
 		case A:
-			fout << "4 " << x;
-			a = fin.peek();
-			if (IsOperation(a)) {
-				if (a == x && a != '!'&&a != '%'&&a != ',' && a != '~') {
-					fout << x;
-					fin.get();
-				}
-				else if (x != ','&&a == '=' || x == '-'&&a == '>') {
-					fout << a;
-					fin.get();
-				}
+			fout << "4 ";
+			s = "";
+			s += x;
+			for (x = fin.peek(), s += x; !IsFinalOperation(s);) {
+				fin.get();
+				x = fin.peek();
+				s += x;
 			}
+			for (int i = 0; i < s.length() - 1; fout << s[i], i++);
 			fout << "\n";
 			state = Start;
 			break;
@@ -132,8 +153,7 @@ int main() {
 			break;
 		case E:
 			fout << "3 " << x;
-			a = x;
-			for (x = fin.get(); x != a; fout << x, x = fin.get());
+			for (x = fin.get(); x != '"'; fout << x, x = fin.get());
 			fout << x << "\n";
 			state = Start;
 			break;
@@ -160,9 +180,15 @@ int main() {
 		case H:
 			for (x = fin.get(); x != '\n' && x != EOF; x = fin.get());
 			state = Start;
+			strings++;
+			fout << "7 " << strings << "\n";
 			break;
 		case I:
-			for (x = fin.get(); x != EOF;) {
+			for (x = fin.get(); ;) {
+				if (x == '\n') {
+					strings++;
+					fout << "7 " << strings << "\n";
+				}
 				if (x == '*') {
 					x = fin.get();
 					if (x == '/') {

@@ -4,9 +4,9 @@ continue
 for
 if
 while
+do
 switch
 case
-enum
-using
-namespace
-std
+goto
+function
+echo

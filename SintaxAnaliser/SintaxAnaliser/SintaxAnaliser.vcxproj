@@ -20,7 +20,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{C16FE69C-2447-481E-80EA-949386B55BD9}</ProjectGuid>
+    <ProjectGuid>{EAA9A4F3-273D-42EE-A6C1-549998B395EA}</ProjectGuid>
     <RootNamespace>SintaxAnaliser</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
