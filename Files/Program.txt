@@ -1,41 +1,88 @@
 <?php
-/*
-* T_ML_COMMENT не существует в PHP 5.
-* Следующие три строчки определют его дл
-* сохранени обратной совместимости.
-*
-* Следующие две строчки определют T_DOC_COMMENT только дл PHP 5,
-* который мы маскируем как T_ML_COMMENT дл PHP 4.
-*/
-if (!defined('T_ML_COMMENT')) {
-   define('T_ML_COMMENT', T_COMMENT);
-} else {
-   define('T_DOC_COMMENT', T_ML_COMMENT);
+$txt = "Hello";
+$txt .=  "World!"; 
+$x = 10;    $x += 1;
+$y = 5;
+$colors = array("Red", "Green", "Blue");
+
+
+echo $txt; // Display variables value
+echo "<br>";
+echo ($x + $y)/2;
+
+
+if(($year % 100 != 0) && true){
+	$year++;
+} 
+else
+	++$year;
+
+
+switch($today){
+case "Sat":
+	$x= $x <=> $y;
+        break;
+default:
+	$array[6] *= $y;
+	break;
 }
 
-$source = file_get_contents('example.php');
-$tokens = token_get_all($source);
 
-foreach ($tokens as $token) {
-   if (is_string($token)) {
-       // проста 1-буквенна лексема
-       echo $token;
-   } else {
-       // токен-массив
-       list($id, $text) = $token;
-
-       switch ($id) { 
-           case T_COMMENT: 
-           case T_ML_COMMENT: // мы определили это
-           case T_DOC_COMMENT: // и это
-               // нет действий дл комментариев
-               break;
-
-           default:
-               // все остальное -> выводим "как есть"
-               echo $text;
-               break;
-       }
-   }
+while($x - 6 === $y || $y <= $x){
+	--$x; 
 }
+
+
+do{
+    $i++;
+    echo "The number is " . $i . "<br>";
+}
+while($i <= 3);
+
+
+for($i=1; $i<=3; $i++){
+	if($s != 7)
+		continue;
+	$s = $p** != $i;
+	echo "hey";
+}
+
+
+while ($i <= 10):
+    echo $i;
+    $i++;
+    if($i==9)
+	break;
+endwhile;
+
+
+switch ($i):
+    case 0:
+        echo "i равно 0";
+        break;
+    case 1:
+        echo "i равно 1";
+        break;
+    default:
+        echo "i не равно to 0, 1 или 2";
+endswitch;
+
+
+// Defining function
+function getSum($num1, $num2){
+  $sum = $num1 + $num2;
+  echo "$sum";
+  return $sum;
+}
+ 
+// Calling function
+$s=getSum(10, 20);
+
+goto a;
+echo 'Foo';
+ 
+a:
+echo 'Bar';
+
+
 ?>

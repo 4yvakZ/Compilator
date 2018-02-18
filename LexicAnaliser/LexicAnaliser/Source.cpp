@@ -144,10 +144,15 @@ int main() {
 			state = Start;
 			for (x = fin.peek(); isalnum(x) || x == '_'; s += x, fin.get(), x = fin.peek());
 			if (IsWord(s)) {
-				fout << "1 ";
+				if (s == "true" || s == "false") {
+					fout << "3 ";
+				}
+				else {
+					fout << "2 ";
+				}
 			}
 			else {
-				fout << "2 ";
+				fout << "1 ";
 			}
 			fout << s << "\n";
 			break;
