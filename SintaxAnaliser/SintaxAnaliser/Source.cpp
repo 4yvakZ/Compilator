@@ -73,8 +73,7 @@ void FunctionCall()
 			Get();
 			ListOfParameters();
 			Get();
-			if (lexem->s != ")") ERROR();
-			Get();
+			if (lexem->s != ")") ERROR(")");
 		}
 	}
 }
@@ -94,7 +93,8 @@ void Get(){
 }
 void ERROR(string s){
 	char x;
-	for (x = Code.get(); x != 7; x = Code.get()) {
+	Code.get();
+	for (x = Code.get(); x != '7'; x = Code.get()) {
 		for (; x != '\n'; x = Code.get());
 	}
 	int strings;
@@ -263,7 +263,7 @@ void Priority15()
 		NEExpression();
 		Get();
 		if (lexem->s != ")") { Get(); return; }
-		ERROR();
+		ERROR(")");
 	}
 	if (lexem->id == 3)	{
 		Get();return;
@@ -284,9 +284,9 @@ void Program()
 			Get();
 			return;
 		}
-		ERROR();
+		ERROR(">");
 	}
-	ERROR();
+	ERROR("<?php");
 }
 
 void Variable(){
@@ -296,9 +296,9 @@ void Variable(){
 			Get();
 			return;
 		}
-		ERROR();
+		ERROR("Имя");
 	}
-	ERROR();
+	ERROR("$");
 }
 
 void Operators(){
@@ -332,7 +332,7 @@ void Assaignable()
 	if (lexem->s == "[")
 	{
 		NEExpression();
-		if (lexem->s != "]") ERROR();
+		if (lexem->s != "]") ERROR("]");
 	}
 }
 void Sign1()
@@ -352,42 +352,42 @@ void Sign1()
 		Get();
 		return;
 	}
-	ERROR();
+	ERROR("= или -= или *= или **= или /= или .= или %= или &= или |= или ^= или <<= или >>=");
 }
 void Sign2(){
 	if (lexem->s == "||"){
 		Get();
 		return;
 	}
-	ERROR();
+	ERROR("||");
 }
 void Sign3(){
 	if (lexem->s == "&&"){
 		Get();
 		return;
 	}
-	ERROR();
+	ERROR("&&");
 }
 void Sign4(){
 	if (lexem->s == "|"){
 		Get();
 		return;
 	}
-	ERROR();
+	ERROR("|");
 }
 void Sign5(){
 	if (lexem->s == "^"){
 		Get();
 		return;
 	}
-	ERROR();
+	ERROR("^");
 }
 void Sign6(){
 	if (lexem->s == "&"){
 		Get();
 		return;
 	}
-	ERROR;
+	ERROR("&");
 }
 void Sign7(){
 	if (lexem->s == "==" ||
@@ -398,7 +398,7 @@ void Sign7(){
 		Get();
 		return;
 	}
-	ERROR();
+	ERROR("== или != или === или !== или <=>");
 }
 void Sign8(){
 	if (lexem->s == "<" ||
@@ -408,7 +408,7 @@ void Sign8(){
 		Get();
 		return;
 	}
-	ERROR;
+	ERROR("< или > или <= или >=");
 }
 void Sign9(){
 	if (lexem->s == "<<" ||
@@ -416,7 +416,7 @@ void Sign9(){
 		Get();
 		return;
 	}
-	ERROR();
+	ERROR("<< или >>");
 }
 void Sign10(){
 	if (lexem->s == "+" ||
@@ -425,7 +425,7 @@ void Sign10(){
 		Get();
 		return;
 	}
-	ERROR();
+	ERROR("+ или - или .");
 }
 void Sign11(){
 	if (lexem->s == "*" ||
@@ -434,14 +434,14 @@ void Sign11(){
 		Get();
 		return;
 	}
-	ERROR();
+	ERROR("* или / или %");
 }
 void Sign12(){
 	if (lexem->s == "!"){
 		Get();
 		return;
 	}
-	ERROR();
+	ERROR("!");
 }
 void Sign13(){
 	if (lexem->s == "++" ||
@@ -449,14 +449,14 @@ void Sign13(){
 		Get();
 		return;
 	}
-	ERROR();
+	ERROR("++ или --");
 }
 void Sign14(){
 	if (lexem->s == "**"){
 		Get();
 		return;
 	}
-	ERROR;
+	ERROR("**");
 }
 
 void Element(){
@@ -471,7 +471,7 @@ void GotoAndChildren(){
 	if (lexem->s == "continue") { Get(); return; }
 	if (lexem->s == "goto") { Get(); Goto(); return; }
 	if (lexem->id == 2) { Get(); Label(); return; }
-	ERROR;
+	ERROR("return или break или continue или goto или Имя");
 }
 void Return(){
 	if (lexem->s == "return"){
