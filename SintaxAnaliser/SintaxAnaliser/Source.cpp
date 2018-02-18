@@ -11,6 +11,7 @@ struct Lex{
 };
 Lex *lexem = new Lex;
 
+void ERROR(string s);
 void Get();
 void Variable();
 void Operators();
@@ -54,7 +55,242 @@ void Return();
 void Goto();
 void Label();
 
-void Block()
+void ListOfArguments() {
+	if (lexem->s != "$") ERROR("$");
+	Get();
+	if (lexem->id != 2) ERROR("uncorrect name");
+	Get();
+	while (lexem->s == ",") {
+		Get();
+		if (lexem->s != "$") ERROR("$");
+		Get();
+		if (lexem->id != 2) ERROR("uncorrect name");
+		Get();
+	}
+	return;
+}
+void FuncDescription() {
+	if (lexem->s != "function") ERROR("function");
+	Get();
+	if (lexem->id != 2) ERROR("uncorrect name");
+	Get();
+	if (lexem->s != "(") ERROR("(");
+	Get();
+	ListOfArguments();
+	if (lexem->s != ")");
+	Get();
+	Block();
+	return;
+}
+void Description() {
+	FuncDescription();
+	return;
+}
+void ForCondition(){
+	Expression();
+	if (lexem->s != ";") ERROR(";");
+	Get();
+	Expression();
+	if (lexem->s != ";") ERROR(";");
+	Get();
+	Expression();
+	return;
+}
+void For()
+{
+	if (lexem->s != "for") ERROR("for");
+	Get();
+	if (lexem->s != "(") ERROR("for");
+	Get();
+	ForCondition();
+	if (lexem->s != ")") ERROR(")");
+	Get();
+	if (lexem->s == "{") {
+		Block();
+		return;
+	}
+	Operator();
+	Operators();
+	if (lexem->s != "endfor") ERROR("endfor");
+	Get();
+	if (lexem->s != ";") ERROR(";");
+	GEt();
+}
+void DoWhile() {
+	if (lexem->s != "do") ERROR("do");
+	Get();
+	Block();
+	if (lexem->s != "while") ERROR("while");
+	Get();
+	if (lexem->s != "(") ERROR("(");
+	Get();
+	NEExpression();
+	if (lexem->s != ")") ERROR(")");
+}
+void While() {
+	if (lexem->s == "while") {
+		Get();
+		if (lexem->s != "(") ERROR("(");
+		Get();
+		NEExpression();
+		if (lexem->s != ")") ERROR(")");
+		Get();
+		if (lexem->s == "{") {
+			Block();
+			return;
+		}
+		Operator();
+		Operators();
+		if (lexem->s != "endwhile") ERROR("endwhile");
+		Get();
+		if (lexem->s != ";") ERROR(";");
+		Get();
+	}
+	ERROR("while");
+}
+void Else1()
+{
+	if (lexem->s == "else") {
+		Get();
+		Operator();
+		Operators();
+		if (lexem->s != "endif") ERROR("endif");
+	}
+	ERROR("else");
+}
+void Else() {
+	if (lexem->s == "else") {
+		Get();
+		Block();
+	}
+	ERROR("else");
+}
+void Case() {
+	if (lexem->s == "case") {
+		Get();
+		if (lexem->id == 3) {
+			Get();
+			if (lexem->s != ":") ERROR(":");
+			Get();
+			Operators();
+		}
+		ERROR("const");
+	}
+	if (lexem->s == "default") {
+		Get();
+		if (lexem->s != ":") ERROR(":");
+		Get();
+		Operators();
+	}
+	ERROR("case or default");
+}
+void SelectOperator()
+{
+	if (lexem->s == "switch") {
+		Get();
+		if (lexem->s == "(") {
+			Get();
+			NEExpression();
+			if (lexem->s == ")") {
+				Get();
+				if (lexem->s == "{") {
+					Get();
+					Case();
+					while (lexem->s == "case" ||
+						lexem->s == "default") {
+						Case();
+					}
+					if (lexem->s != "}") ERROR("}");
+				}
+				do {
+					Case();
+				} while (lexem->s == "case" ||
+					lexem->s == "default");
+				if (lexem->s != "endswitch") ERROR("endswitch");
+				Get();
+				if (lexem->s != ";") ERROR(";");
+				Get();
+			}
+			ERROR(")");
+		}
+		ERROR("(");
+	}
+	ERROR("switch");
+}
+void ConditionalOperator() {
+	if (lexem->s == "if") {
+		Get();
+		if (lexem->s != "(") ERROR("(");
+		Get();
+		NEExpression();
+		if (lexem->s != ")") ERROR(")");
+		Get();
+		if (lexem->s == "{") {
+			Block();
+			Else();
+			return;
+		}
+		Operator();
+		Operators();
+		Else1();
+	}
+	ERROR("if");
+}
+void CycleOperator() {
+	if (lexem->s == "while") {
+		Get();
+		While();
+		return;
+	}
+	if (lexem->s == "do") {
+		Get();
+		DoWhile();
+		return;
+	}
+	if (lexem->s == "for") {
+		Get();
+		For();
+		return;
+	}
+	ERROR("while or do while or for");
+}
+void SpecOperator() {
+	if (lexem->s == "echo") {
+		OutPutOperator();
+		return;
+	}
+	if (lexem->s == "if") {
+		ConditionalOperator();
+		return;
+	}
+	if (lexem->s == "while" ||
+		lexem->s == "do" ||
+		lexem->s == "for") {
+		CycleOperator();
+		return;
+	}
+	if (lexem->s == "return" ||
+		lexem->s == "break" ||
+		lexem->s == "continue" ||
+		lexem->s == "goto" ||
+		lexem->id == 2) {
+		GotoAndChildren();
+		return;
+	}
+	SelectOperator();
+}
+void Block() {
+	if (lexem->s == "{") {
+		Get();
+		Operator();
+		Operators();
+		if (lexem->s != "}") ERROR;
+	}
+	else {
+		Operator();
+		Get();
+	}
+}
 
 void ListOfParameters()
 {
@@ -74,6 +310,7 @@ void FunctionCall()
 			ListOfParameters();
 			Get();
 			if (lexem->s != ")") ERROR(")");
+			Get();
 		}
 	}
 }
@@ -105,62 +342,51 @@ void ERROR(string s){
 void Priority2()
 {
 	Priority3();
-	Get();
 	while (lexem->s == "||")
 	{
 		Sign2();
 		Priority3();
-		Get();
 	}
 }
 void Priority3()
 {
 	Priority4();
-	Get();
 	while (lexem->s == "&&")
 	{
 		Sign3();
 		Priority4();
-		Get();
 	}
 }
 void Priority4()
 {
 	Priority5();
-	Get();
 	while (lexem->s == "|")
 	{
 		Sign4();
 		Priority5();
-		Get();
 	}
 }
 void Priority5()
 {
 	Priority6();
-	Get();
 	while (lexem->s == "^")
 	{
 		Sign5();
 		Priority6();
-		Get();
 	}
 }
 void Priority6()
 {
 	Priority7();
-	Get();
 	while (lexem->s == "&")
 	{
 		Sign6();
 		Priority7();
-		Get();
 	}
 }
 void Priority7()
 {
 	Priority8();
-	Get();
 	while (lexem->s == "==" ||
 		lexem->s == "!=" ||
 		lexem->s == "===" ||
@@ -169,13 +395,11 @@ void Priority7()
 	{
 		Sign7();
 		Priority8();
-		Get();
 	}
 }
 void Priority8()
 {
 	Priority9();
-	Get();
 	while (lexem->s == "<" ||
 		lexem->s == ">" ||
 		lexem->s == "<=" ||
@@ -183,51 +407,49 @@ void Priority8()
 	{
 		Sign8();
 		Priority9();
-		Get();
 	}
 }
 void Priority9()
 {
 	Priority10();
-	Get();
 	while (lexem->s == "<<" ||
 		lexem->s == ">>")
 	{
 		Sign9();
 		Priority10();
-		Get();
 	}
 }
 void Priority10()
 {
 	Priority11();
-	Get();
 	while (lexem->s == "+" ||
 		lexem->s == "-" ||
 		lexem->s == ".")
 	{
 		Sign10();
 		Priority11();
-		Get();
 	}
 }
 void Priority11()
 {
 	Priority12();
-	Get();
 	while (lexem->s == "*" ||
 		lexem->s == "/" ||
 		lexem->s == "%")
 	{
 		Sign11();
 		Priority12();
-		Get();
 	}
 }
-void Priority12()
+void Priority12()//?!!!!!!!
 {
-	Sign12();
+	if (lexem->s == "!") {
+		Sign12();
+		Priority13();
+		return;
+	}
 	Priority13();
+	return;
 }
 void Priority13()
 {
@@ -240,24 +462,27 @@ void Priority13()
 	else
 	{
 		Priority14();
-		Sign13();
+		if (lexem->s == "++" ||
+			lexem->s == "--") {
+			Sign13();
+		}
+		return;
 	}
+	return;
 }
 void Priority14()
 {
 	Priority15();
-	Get();
 	while (lexem->s == "**")
 	{
 		Sign14();
 		Priority15();
-		Get();
 	}
 }
 void Priority15()
 {
 	if (lexem->s == "$") {
-		Assignable(); Get(); return;
+		Assignable(); return;
 	}
 	if (lexem->s == "(") {
 		NEExpression();
@@ -302,41 +527,102 @@ void Variable(){
 }
 
 void Operators(){
-	Operator();
-	return;
+	while (true) {
+		if (lexem->s == "function") {
+			FuncDescription();
+		}else	
+			if (lexem->s == "switch" ||
+			lexem->s == "if" ||
+			lexem->s == "while" ||
+			lexem->s == "do" ||
+			lexem->s == "for" ||
+			lexem->s == "return" ||
+			lexem->s == "break" ||
+			lexem->s == "continue" ||
+			lexem->s == "goto" ||
+			lexem->id == 2) {
+			SpecOperator();
+		}else
+			if (lexem->s == "$" ||
+				lexem->s == "(" ||
+				lexem->s == "function" ||
+				lexem->id == 3) {
+			Expression();
+			if (lexem->s != ";") ERROR(";");
+		}else 
+				if (lexem->s == ";") {
+					Get()
+				}
+				else return;
+	}
 }
 void Operator(){
-	return;
+	if (lexem->s == "function") {
+		FuncDescription();
+		return;
+	}
+	if (lexem->s == "switch" ||
+		lexem->s == "if" ||
+		lexem->s == "while" ||
+		lexem->s == "do" ||
+		lexem->s == "for" ||
+		lexem->s == "return" ||
+		lexem->s == "break" ||
+		lexem->s == "continue" ||
+		lexem->s == "goto" ||
+		lexem->id == 2) {
+		SpecOperator();
+		return;
+	}
+	if (lexem->s == "$") {
+		Expression();
+		if (lexem->s != ";") ERROR(";");
+		return;
+	}
+	ERROR("uncorrect operator");
 }
 
 void Expression(){
-	NEExpression();//non-empty expression
-	Get();
+	if (lexem->s == "$") {
+		NEExpression();
+	}else	Get();
 	return;
 }
 void NEExpression()           ////////////////
 {
+	if (lexem->s != "$") {
+		Priority2();
+		return;
+	}
 	Assignable();
-	Sign1();
+	if(lexem->s == "=" ||
+		lexem->s == "+=" ||
+		lexem->s == "-=" ||
+		lexem->s == "*=" ||
+		lexem->s == "**=" ||
+		lexem->s == "/=" ||
+		lexem->s == ".=" ||
+		lexem->s == "%=" ||
+		lexem->s == "&=" ||
+		lexem->s == "|=" ||
+		lexem->s == "^=" ||
+		lexem->s == "<<=" ||
+		lexem->s == ">>=")	Sign1();
 	NEExpression();
-
 	return;
 }
 void Assaignable()
 {
 	Variable();
-	while (lexem->s == "$")
-	{
+	while (lexem->s == "$")	{
 		Variable();
 	}
-	if (lexem->s == "[")
-	{
+	if (lexem->s == "[")	{
 		NEExpression();
 		if (lexem->s != "]") ERROR("]");
 	}
 }
-void Sign1()
-{
+void Sign1(){
 	if (lexem->s == "=" ||
 		lexem->s == "-=" ||
 		lexem->s == "*=" ||
@@ -498,13 +784,9 @@ void Label(){
 		}
 	}
 }
-
-
-
-
 int main(){
 	Get();
-
+	Program();
 	system("pause");
 	return 0;
 }
