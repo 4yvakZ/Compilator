@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <cctype>
 using namespace std;
 
 static ifstream Code("D:\\IT_files\\Compilator\\Files\\Code.txt");
@@ -53,6 +54,37 @@ void Return();
 void Goto();
 void Label();
 void Assaignable();
+
+
+void ListOfParameters()
+{
+	NEExpression();
+	while (lexem->s == ",")
+	{
+		Get();
+		NEExpression();
+	}
+}
+void FunctionCall()
+{
+	if (lexem->id == 2) {
+		Get();
+		if (lexem->s == "(") {
+			Get();
+			ListOfParameters();
+			Get();
+			if (lexem->s != ")") ERROR();
+		}
+	}
+}
+void OutPutOperator()
+{
+	if (lexem->s == "echo")
+	{
+		Get();
+		Expression();
+	}
+}
 
 void Get(){
 	Code >> lexem->id;
@@ -122,39 +154,114 @@ void Priority6()
 }
 void Priority7()
 {
-
+	Priority8();
+	while (lexem->s == "==" ||
+		lexem->s == "!=" ||
+		lexem->s == "===" ||
+		lexem->s == "!==" ||
+		lexem->s == "<=>")
+	{
+		Sign7();
+		Priority8();
+	}
+	Get();
 }
 void Priority8()
 {
-
+	Priority9();
+	while (lexem->s == "<" ||
+		lexem->s == ">" ||
+		lexem->s == "<=" ||
+		lexem->s == ">=")
+	{
+		Sign8();
+		Priority9();
+	}
+	Get();
 }
 void Priority9()
 {
-
+	Priority10();
+	while (lexem->s == "<<" ||
+		lexem->s == ">>")
+	{
+		Sign9();
+		Priority10();
+	}
+	Get();
 }
 void Priority10()
 {
-
+	Priority11();
+	while (lexem->s == "+" ||
+		lexem->s == "-" ||
+		lexem->s == ".")
+	{
+		Sign10();
+		Priority11();
+	}
+	Get();
 }
 void Priority11()
 {
-
+	Priority12();
+	while (lexem->s == "*" ||
+		lexem->s == "/" ||
+		lexem->s == "%")
+	{
+		Sign11();
+		Priority12();
+	}
+	Get();
 }
 void Priority12()
 {
-
+	Sign12();
+	Priority13();
+	Get();
 }
 void Priority13()
 {
-
+	if (lexem->s == "++" ||
+		lexem->s == "--")
+	{
+		Sign13();
+		Priority14();
+	}
+	else
+	{
+		Priority14();
+		Sign13();
+	}
+	Get();
 }
 void Priority14()
 {
-
+	Priority15();
+	while (lexem->s == "**")
+	{
+		Sign14();
+		Priority15();
+	}
+	Get();
 }
 void Priority15()
 {
-
+	if (lexem->s == "$") {
+		Assignable(); Get(); return;
+	}
+	if (lexem->s == "(") {
+		NEExpression();
+		Get();
+		if (lexem->s != ")") { Get(); return; }
+		ERROR();
+	}
+	if (lexem->id == 3)	{
+		Get();return;
+	}
+	FunctionCall();
+	Get();
+	return;
 }
 
 
