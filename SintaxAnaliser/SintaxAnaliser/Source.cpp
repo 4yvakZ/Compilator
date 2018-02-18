@@ -61,7 +61,8 @@ void Get(){
 }
 void ERROR(string s){
 	char x;
-	for (x = Code.get(); x != 7; x = Code.get()) {
+	Code.get();
+	for (x = Code.get(); x != '7'; x = Code.get()) {
 		for (; x != '\n'; x = Code.get());
 	}
 	int strings;
