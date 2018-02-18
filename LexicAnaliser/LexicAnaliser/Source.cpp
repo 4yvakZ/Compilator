@@ -131,6 +131,12 @@ int main() {
 		case B:
 			fout << "3 " << x;
 			for (x = fin.peek(); isdigit(x); fout << x, fin.get(), x = fin.peek());
+			if (x == '.') {
+				fin.get();
+				fout << x;
+				x = fin.peek();
+				for (x = fin.peek(); isdigit(x); fout << x, fin.get(), x = fin.peek());
+			}
 			fout << "\n";
 			state = Start;
 			if (isalpha(x)) {
