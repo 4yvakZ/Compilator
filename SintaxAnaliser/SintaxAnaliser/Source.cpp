@@ -53,8 +53,8 @@ void GotoAndChildren();
 void Return();
 void Goto();
 void Label();
-void Assaignable();
 
+void Block()
 
 void ListOfParameters()
 {
@@ -74,6 +74,7 @@ void FunctionCall()
 			ListOfParameters();
 			Get();
 			if (lexem->s != ")") ERROR();
+			Get();
 		}
 	}
 }
@@ -104,56 +105,62 @@ void ERROR(string s){
 void Priority2()
 {
 	Priority3();
+	Get();
 	while (lexem->s == "||")
 	{
 		Sign2();
 		Priority3();
+		Get();
 	}
-	Get();
 }
 void Priority3()
 {
 	Priority4();
+	Get();
 	while (lexem->s == "&&")
 	{
 		Sign3();
 		Priority4();
+		Get();
 	}
-	Get();
 }
 void Priority4()
 {
 	Priority5();
+	Get();
 	while (lexem->s == "|")
 	{
 		Sign4();
 		Priority5();
+		Get();
 	}
-	Get();
 }
 void Priority5()
 {
 	Priority6();
+	Get();
 	while (lexem->s == "^")
 	{
 		Sign5();
 		Priority6();
+		Get();
 	}
-	Get();
 }
 void Priority6()
 {
 	Priority7();
+	Get();
 	while (lexem->s == "&")
 	{
 		Sign6();
 		Priority7();
+		Get();
 	}
-	Get();
 }
 void Priority7()
 {
 	Priority8();
+	Get();
 	while (lexem->s == "==" ||
 		lexem->s == "!=" ||
 		lexem->s == "===" ||
@@ -162,12 +169,13 @@ void Priority7()
 	{
 		Sign7();
 		Priority8();
+		Get();
 	}
-	Get();
 }
 void Priority8()
 {
 	Priority9();
+	Get();
 	while (lexem->s == "<" ||
 		lexem->s == ">" ||
 		lexem->s == "<=" ||
@@ -175,49 +183,51 @@ void Priority8()
 	{
 		Sign8();
 		Priority9();
+		Get();
 	}
-	Get();
 }
 void Priority9()
 {
 	Priority10();
+	Get();
 	while (lexem->s == "<<" ||
 		lexem->s == ">>")
 	{
 		Sign9();
 		Priority10();
+		Get();
 	}
-	Get();
 }
 void Priority10()
 {
 	Priority11();
+	Get();
 	while (lexem->s == "+" ||
 		lexem->s == "-" ||
 		lexem->s == ".")
 	{
 		Sign10();
 		Priority11();
+		Get();
 	}
-	Get();
 }
 void Priority11()
 {
 	Priority12();
+	Get();
 	while (lexem->s == "*" ||
 		lexem->s == "/" ||
 		lexem->s == "%")
 	{
 		Sign11();
 		Priority12();
+		Get();
 	}
-	Get();
 }
 void Priority12()
 {
 	Sign12();
 	Priority13();
-	Get();
 }
 void Priority13()
 {
@@ -232,17 +242,17 @@ void Priority13()
 		Priority14();
 		Sign13();
 	}
-	Get();
 }
 void Priority14()
 {
 	Priority15();
+	Get();
 	while (lexem->s == "**")
 	{
 		Sign14();
 		Priority15();
+		Get();
 	}
-	Get();
 }
 void Priority15()
 {
@@ -259,7 +269,6 @@ void Priority15()
 		Get();return;
 	}
 	FunctionCall();
-	Get();
 	return;
 }
 
