@@ -12,6 +12,7 @@ struct Lex{
 };
 Lex *lexem = new Lex;
 
+void Program();
 void ERROR(string s);
 void Get();
 void Variable();
@@ -341,6 +342,13 @@ void ERROR(string s){
 	goto end;
 }
 
+int main() {
+	Get();
+	Program();
+end:system("pause");
+	return 0;
+}
+
 void Priority2()
 {
 	Priority3();
@@ -613,7 +621,7 @@ void NEExpression()           ////////////////
 	NEExpression();
 	return;
 }
-void Assaignable()
+void Assignable()
 {
 	Variable();
 	while (lexem->s == "$")	{
@@ -785,10 +793,4 @@ void Label(){
 			return;
 		}
 	}
-}
-int main(){
-	Get();
-	Program();
-end:system("pause");
-	return 0;
 }
