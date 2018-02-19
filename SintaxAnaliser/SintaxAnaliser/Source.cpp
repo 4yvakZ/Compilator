@@ -116,7 +116,7 @@ void For()
 	if (lexem->s != "endfor") ERROR("endfor");
 	Get();
 	if (lexem->s != ";") ERROR(";");
-	GEt();
+	Get();
 }
 void DoWhile() {
 	if (lexem->s != "do") ERROR("do");
@@ -342,13 +342,6 @@ void ERROR(string s){
 	goto end;
 }
 
-int main() {
-	Get();
-	Program();
-end:system("pause");
-	return 0;
-}
-
 void Priority2()
 {
 	Priority3();
@@ -561,7 +554,7 @@ void Operators(){
 			if (lexem->s != ";") ERROR(";");
 		}else 
 				if (lexem->s == ";") {
-					Get()
+					Get();
 				}
 				else return;
 	}
@@ -600,7 +593,7 @@ void Expression(){
 }
 void NEExpression()           ////////////////
 {
-	if (lexem->s != "$") {
+	if (lexem->s == "$") {
 		Priority2();
 		return;
 	}
@@ -793,4 +786,10 @@ void Label(){
 			return;
 		}
 	}
+}
+int main() {
+	Get();
+	Program();
+end:system("pause");
+	return 0;
 }
