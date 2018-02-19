@@ -585,12 +585,8 @@ void Expression(){
 }
 void NEExpression()           ////////////////
 {
-	if (lexem->s == "$") {
-		Priority2();
-		return;
-	}
-	Assignable();
-	if(lexem->s == "=" ||
+	Priority2();
+	if (lexem->s == "=" ||
 		lexem->s == "+=" ||
 		lexem->s == "-=" ||
 		lexem->s == "*=" ||
@@ -602,8 +598,10 @@ void NEExpression()           ////////////////
 		lexem->s == "|=" ||
 		lexem->s == "^=" ||
 		lexem->s == "<<=" ||
-		lexem->s == ">>=")	Sign1();
-	NEExpression();
+		lexem->s == ">>=") {
+		Sign1();
+		NEExpression();
+	}
 	return;
 }
 void Assignable()
@@ -747,10 +745,10 @@ void Element(){
 }
 
 void GotoAndChildren(){
-	if (lexem->s == "return") { Get(); Return(); return; }
-	if (lexem->s == "break") { Get(); return; }
-	if (lexem->s == "continue") { Get(); return; }
-	if (lexem->s == "goto") { Get(); Goto(); return; }
+	if (lexem->s == "return") { Get(); Return(); if (lexem->s != ";") ERROR(";"); Get(); return; }
+	if (lexem->s == "break") { Get(); if (lexem->s != ";") ERROR(";"); Get(); return; }
+	if (lexem->s == "continue") { Get(); if (lexem->s != ";") ERROR(";"); Get(); return; }
+	if (lexem->s == "goto") { Get(); Goto(); if (lexem->s != ";") ERROR(";"); Get(); return; }
 	if (lexem->id == 2) { Get(); Label(); return; }
 	ERROR("return или break или continue или goto или Имя");
 }
