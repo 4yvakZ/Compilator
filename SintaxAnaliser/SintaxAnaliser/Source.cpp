@@ -334,7 +334,7 @@ void Get(){
 	do {
 		Code >> lexem->id;
 		Code >> lexem->s;
-	} while (lexem->id == 7);
+	}while (lexem->id == 7);
 	return;
 }
 void ERROR(string s) {
