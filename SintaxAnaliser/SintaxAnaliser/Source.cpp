@@ -10,8 +10,8 @@ struct Lex{
 	int id;
 	string s;
 };
-Lex *lexem = new Lex;
-
+static Lex *lexem = new Lex;
+static int strings = 1;
 void Program();
 void ERROR(string s);
 void Get();
@@ -336,7 +336,7 @@ void Get(){
 		lexem->id = 0;
 		Code >> lexem->id;
 		Code >> lexem->s;
-		//if (lexem->id == 7)cout << lexem->s;
+		if (lexem->id == 7)strings++;
 	} while (lexem->id == 7);
 	return;
 }
@@ -803,13 +803,6 @@ int main() {
 		Program();
 	}
 	catch (string s) {
-		char x;
-		Code.get();
-		for (x = Code.get(); x != '7'; x = Code.get()) {
-			for (; x != '\n'; x = Code.get());
-		}
-		int strings;
-		Code >> strings;
 		cout << "Error in string " << strings << "\nExpect: " << s << "\nGet: " << lexem->s;
 		delete lexem;
 		Code.close();
