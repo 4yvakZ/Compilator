@@ -2,6 +2,7 @@
 #include <fstream>
 #include <string>
 #include <cctype>
+#include <stdio.h>
 using namespace std;
 
 static ifstream Code("D:\\IT_files\\Compilator\\Files\\Code.txt");
@@ -337,6 +338,7 @@ void ERROR(string s){
 	int strings;
 	Code >> strings;
 	cout << "Ошибка в строке " << strings << "\nОжидалось: " << s << "\nПолучено: " << lexem->s;
+	goto end;
 }
 
 void Priority2()
@@ -787,6 +789,6 @@ void Label(){
 int main(){
 	Get();
 	Program();
-	system("pause");
+end:system("pause");
 	return 0;
 }
