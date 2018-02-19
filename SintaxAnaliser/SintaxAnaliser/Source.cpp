@@ -530,32 +530,34 @@ void Operators(){
 	while (true) {
 		if (lexem->s == "function") {
 			FuncDescription();
-		}else	
-			if (lexem->s == "switch" ||
-			lexem->s == "if" ||
-			lexem->s == "while" ||
-			lexem->s == "do" ||
-			lexem->s == "for" ||
-			lexem->s == "return" ||
-			lexem->s == "break" ||
-			lexem->s == "continue" ||
-			lexem->s == "echo" ||
-			lexem->s == "goto" ||
-			lexem->s == "echo" ||
-			lexem->id == 2) {
+		}
+		else
+		if (lexem->s == "switch" ||
+		lexem->s == "if" ||
+		lexem->s == "while" ||
+		lexem->s == "do" ||
+		lexem->s == "for" ||
+		lexem->s == "return" ||
+		lexem->s == "break" ||
+		lexem->s == "continue" ||
+		lexem->s == "echo" ||
+		lexem->s == "goto"
+		) {
 			SpecOperator();
-		}else
-			if (lexem->s == "$" ||
-				lexem->s == "(" ||
-				lexem->s == "function" ||
-				lexem->id == 3) {
+		}
+		else
+		if (lexem->s == "$" ||
+			lexem->s == "(" ||
+			lexem->id == 2 ||
+			lexem->id == 3) {
 			Expression();
 			if (lexem->s != ";") ERROR(";");
-		}else 
-				if (lexem->s == ";") {
-					Get();
-				}
-				else return;
+		}
+		else
+		if (lexem->s == ";") {
+			Get();
+		}
+		else return;
 	}
 }
 void Operator(){
@@ -576,7 +578,11 @@ void Operator(){
 		SpecOperator();
 		return;
 	}
-	if (lexem->s == "$") {
+	if (lexem->s == "$" ||
+		lexem->s == "function"||
+		lexem->s == "(" ||
+		lexem->id == 3) {
+		printf("lol");
 		Expression();
 		if (lexem->s != ";") ERROR(";");
 		return;
@@ -801,7 +807,7 @@ int main() {
 		}
 		int strings;
 		Code >> strings;
-		cout << "Error in string " << strings << "\nExpect: " << s << "\nGet: " << lexem->s;
+		cout << "Error in string " << strings << "\nExpect: " << s << "\nGet: " << lexem->s << "\n";
 		system("pause");
 		return 0;
 	}
