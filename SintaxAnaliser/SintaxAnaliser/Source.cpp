@@ -585,7 +585,10 @@ void Operator(){
 }
 
 void Expression(){
-	if (lexem->s == "$") {
+	if (lexem->s == "$" ||
+		lexem->s == "function" ||
+		lexem->s == "(" ||
+		lexem->id == 3) {
 		NEExpression();
 	}else	Get();
 	return;
