@@ -18,6 +18,7 @@ void Get();
 void Variable();
 void Operators();
 void Operator();
+void OutPutOperator();
 void Expression();
 void NEExpression();
 void Assignable();
@@ -51,6 +52,7 @@ void Priority13();
 void Priority14();
 void Priority15();
 
+void Block();
 void Element();
 void GotoAndChildren();
 void Return();
@@ -79,7 +81,7 @@ void FuncDescription() {
 	if (lexem->s != "(") ERROR("(");
 	Get();
 	ListOfArguments();
-	if (lexem->s != ")");
+	if (lexem->s != ")") ERROR(")");
 	Get();
 	Block();
 	return;
@@ -326,8 +328,10 @@ void OutPutOperator()
 }
 
 void Get(){
-	Code >> lexem->id;
-	Code >> lexem->s;
+	do {
+		Code >> lexem->id;
+		Code >> lexem->s;
+	} while (lexem->id == 7);
 	return;
 }
 void ERROR(string s) {
@@ -496,17 +500,15 @@ void Priority15()
 
 void Program()
 {
-	if (lexem->s == "<?php") //!
-	{
-		Get();
-		Operators();
-		if (lexem->s == ">"){
-			Get();
-			return;
-		}
-		ERROR(">");
-	}
-	ERROR("<?php");
+	if (lexem->s != "<") ERROR("<");
+	Get();
+	if (lexem->s != "?") ERROR("?");
+	Get();
+	if (lexem->s != "php") ERROR("php");
+	Get();
+	Operators();
+	if (lexem->s != ">") ERROR(">");
+	return;
 }
 
 void Variable(){
@@ -583,7 +585,7 @@ void Expression(){
 	}else	Get();
 	return;
 }
-void NEExpression()           ////////////////
+void NEExpression()
 {
 	Priority2();
 	if (lexem->s == "=" ||
@@ -622,6 +624,7 @@ void Sign1(){
 		lexem->s == "**=" ||
 		lexem->s == "/=" ||
 		lexem->s == ".=" ||
+		lexem->s == "+=" ||
 		lexem->s == "%=" ||
 		lexem->s == "&=" ||
 		lexem->s == "|=" ||
@@ -631,7 +634,7 @@ void Sign1(){
 		Get();
 		return;
 	}
-	ERROR("= или -= или *= или **= или /= или .= или %= или &= или |= или ^= или <<= или >>=");
+	ERROR("= or -= or *= or **= or += or /= or .= or %= or &= or |= or ^= or <<= or >>=");
 }
 void Sign2(){
 	if (lexem->s == "||"){
@@ -677,7 +680,7 @@ void Sign7(){
 		Get();
 		return;
 	}
-	ERROR("== или != или === или !== или <=>");
+	ERROR("== or != or === or !== or <=>");
 }
 void Sign8(){
 	if (lexem->s == "<" ||
@@ -687,7 +690,7 @@ void Sign8(){
 		Get();
 		return;
 	}
-	ERROR("< или > или <= или >=");
+	ERROR("< or > or <= or >=");
 }
 void Sign9(){
 	if (lexem->s == "<<" ||
@@ -695,7 +698,7 @@ void Sign9(){
 		Get();
 		return;
 	}
-	ERROR("<< или >>");
+	ERROR("<< or >>");
 }
 void Sign10(){
 	if (lexem->s == "+" ||
@@ -704,7 +707,7 @@ void Sign10(){
 		Get();
 		return;
 	}
-	ERROR("+ или - или .");
+	ERROR("+ or - or .");
 }
 void Sign11(){
 	if (lexem->s == "*" ||
@@ -713,7 +716,7 @@ void Sign11(){
 		Get();
 		return;
 	}
-	ERROR("* или / или %");
+	ERROR("* or / or %");
 }
 void Sign12(){
 	if (lexem->s == "!"){
@@ -728,7 +731,7 @@ void Sign13(){
 		Get();
 		return;
 	}
-	ERROR("++ или --");
+	ERROR("++ or --");
 }
 void Sign14(){
 	if (lexem->s == "**"){
@@ -750,7 +753,7 @@ void GotoAndChildren(){
 	if (lexem->s == "continue") { Get(); if (lexem->s != ";") ERROR(";"); Get(); return; }
 	if (lexem->s == "goto") { Get(); Goto(); if (lexem->s != ";") ERROR(";"); Get(); return; }
 	if (lexem->id == 2) { Get(); Label(); return; }
-	ERROR("return или break или continue или goto или Имя");
+	ERROR("return or break or continue or goto or Имя");
 }
 void Return(){
 	if (lexem->s == "return"){
@@ -790,7 +793,7 @@ int main() {
 		}
 		int strings;
 		Code >> strings;
-		cout << "Ошибка в строке " << strings << "\nОжидалось: " << s << "\nПолучено: " << lexem->s;
+		cout << "Error in string " << strings << "\nExpect: " << s << "\nGet: " << lexem->s;
 		system("pause");
 		return 0;
 	}
