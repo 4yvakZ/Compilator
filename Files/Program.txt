@@ -1,18 +1,29 @@
 <?php
+$txt = "Hello";
+$txt .=  "World!"; 
+$x = 10;    $x += 1;
+$y = 5;
+$colors = array("Red", "Green", "Blue");
+
+
+echo $txt; // Display variables value
+echo "<br>";
 echo ($x + $y)/2;
 
 
 if(($year % 100 != 0) && true){
 	$year++;
-} else {
+} 
+else
 	++$year;
-	}
+
 
 switch($today){
 case "Sat":
 	$x= $x <=> $y;
         break;
 default:
+	$array[6] *= $y;
 	break;
 }
 
@@ -74,4 +85,4 @@ a:
 echo 'Bar';
 
 
-?>
+>

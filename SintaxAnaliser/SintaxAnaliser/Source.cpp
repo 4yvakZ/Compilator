@@ -204,6 +204,8 @@ void SelectOperator()
 						Case();
 					}
 					if (lexem->s != "}") ERROR("}");
+					Get();
+					return;
 				}
 				do {
 					Case();
@@ -241,17 +243,14 @@ void ConditionalOperator() {
 }
 void CycleOperator() {
 	if (lexem->s == "while") {
-		Get();
 		While();
 		return;
 	}
 	if (lexem->s == "do") {
-		Get();
 		DoWhile();
 		return;
 	}
 	if (lexem->s == "for") {
-		Get();
 		For();
 		return;
 	}
@@ -332,10 +331,14 @@ void OutPutOperator()
 
 void Get(){
 	do {
+		string s = "";
 		lexem->s = "";
 		lexem->id = 0;
 		Code >> lexem->id;
-		Code >> lexem->s;
+		for (char x = Code.peek(); x != '\n'; x = Code.peek()) {
+			Code >> s;
+			lexem->s += s;
+		}
 		if (lexem->id == 7)strings++;
 	} while (lexem->id == 7);
 	return;
@@ -580,6 +583,7 @@ void Operator(){
 		lexem->s == "break" ||
 		lexem->s == "continue" ||
 		lexem->s == "goto" ||
+		lexem->s == "echo" ||
 		lexem->id == 2) {
 		SpecOperator();
 		return;
