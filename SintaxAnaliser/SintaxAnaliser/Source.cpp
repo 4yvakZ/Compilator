@@ -163,11 +163,9 @@ void Else1()
 	ERROR("else");
 }
 void Else() {
-	if (lexem->s == "else") {
-		Get();
-		Block();
-	}
-	ERROR("else");
+	if (lexem->s != "else")ERROR("else");
+	Get();
+	Block();
 }
 void Case() {
 	if (lexem->s == "case") {
@@ -177,16 +175,17 @@ void Case() {
 			if (lexem->s != ":") ERROR(":");
 			Get();
 			Operators();
+			return;
 		}
-		ERROR("const");
-	}
-	if (lexem->s == "default") {
+		ERROR("Const");
+	} if (lexem->s == "default") {
 		Get();
 		if (lexem->s != ":") ERROR(":");
 		Get();
 		Operators();
+		return;
 	}
-	ERROR("case or default");
+	ERROR("Case or default");
 }
 void SelectOperator()
 {
@@ -231,8 +230,6 @@ void ConditionalOperator() {
 		Get();
 		if (lexem->s == "{") {
 			Block();
-			if (lexem->s != "}")ERROR("}");
-			Get();
 			Else();
 			return;
 		}
@@ -294,6 +291,7 @@ void Block() {
 		Operator();
 		Operators();
 		if (lexem->s != "}") ERROR("}");
+		Get();
 	}
 	else {
 		Operator();

@@ -10,3 +10,4 @@ case
 goto
 function
 echo
+default

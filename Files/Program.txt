@@ -4,16 +4,15 @@ echo ($x + $y)/2;
 
 if(($year % 100 != 0) && true){
 	$year++;
-}else
+} else {
 	++$year;
-
+	}
 
 switch($today){
 case "Sat":
 	$x= $x <=> $y;
         break;
 default:
-	$array[6] *= $y;
 	break;
 }
 
