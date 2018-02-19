@@ -115,7 +115,7 @@ void For()
 	if (lexem->s != "endfor") ERROR("endfor");
 	Get();
 	if (lexem->s != ";") ERROR(";");
-	GEt();
+	Get();
 }
 void DoWhile() {
 	if (lexem->s != "do") ERROR("do");
@@ -285,7 +285,7 @@ void Block() {
 		Get();
 		Operator();
 		Operators();
-		if (lexem->s != "}") ERROR;
+		if (lexem->s != "}") ERROR("}");
 	}
 	else {
 		Operator();
@@ -329,16 +329,8 @@ void Get(){
 	Code >> lexem->s;
 	return;
 }
-void ERROR(string s){
-	char x;
-	Code.get();
-	for (x = Code.get(); x != '7'; x = Code.get()) {
-		for (; x != '\n'; x = Code.get());
-	}
-	int strings;
-	Code >> strings;
-	cout << "Ошибка в строке " << strings << "\nОжидалось: " << s << "\nПолучено: " << lexem->s;
-	goto end;
+void ERROR(string s) {
+	throw(s);
 }
 
 void Priority2()
@@ -553,7 +545,7 @@ void Operators(){
 			if (lexem->s != ";") ERROR(";");
 		}else 
 				if (lexem->s == ";") {
-					Get()
+					Get();
 				}
 				else return;
 	}
@@ -613,7 +605,7 @@ void NEExpression()           ////////////////
 	NEExpression();
 	return;
 }
-void Assaignable()
+void Assignable()
 {
 	Variable();
 	while (lexem->s == "$")	{
@@ -788,7 +780,21 @@ void Label(){
 }
 int main(){
 	Get();
-	Program();
-end:system("pause");
+	try {
+		Program();
+	}
+	catch (string s) {
+		char x;
+		Code.get();
+		for (x = Code.get(); x != '7'; x = Code.get()) {
+			for (; x != '\n'; x = Code.get());
+		}
+		int strings;
+		Code >> strings;
+		cout << "Ошибка в строке " << strings << "\nОжидалось: " << s << "\nПолучено: " << lexem->s;
+		system("pause");
+		return 0;
+	}
+	system("pause");
 	return 0;
 }
