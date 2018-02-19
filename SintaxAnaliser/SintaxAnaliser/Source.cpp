@@ -310,15 +310,9 @@ void ListOfParameters()
 }
 void FunctionCall()
 {
-	if (lexem->id == 2) {
+		ListOfParameters();
+		if (lexem->s != ")") ERROR(")");
 		Get();
-		if (lexem->s == "(") {
-			Get();
-			ListOfParameters();
-			if (lexem->s != ")") ERROR(")");
-			Get();
-		}
-	}
 }
 void OutPutOperator()
 {
@@ -501,7 +495,19 @@ void Priority15()
 	if (lexem->id == 3)	{
 		Get();return;
 	}
-	FunctionCall();
+	if (lexem->id == 2) {
+		Get();
+		if (lexem->s == "(") {
+			Get();
+			FunctionCall();
+			return;
+		}
+		if (lexem->s == ":") {
+			Get();
+			return;
+		}
+		ERROR("( or :");
+	}
 	return;
 }
 
@@ -782,8 +788,7 @@ void GotoAndChildren(){
 	if (lexem->s == "break") { Get(); if (lexem->s != ";") ERROR(";"); Get(); return; }
 	if (lexem->s == "continue") { Get(); if (lexem->s != ";") ERROR(";"); Get(); return; }
 	if (lexem->s == "goto") { Goto(); if (lexem->s != ";") ERROR(";"); Get(); return; }
-	if (lexem->id == 2) { Get(); Label(); return; }
-	ERROR("return or break or continue or goto or Name");
+	ERROR("return or break or continue or goto");
 }
 void Return(){
 	if (lexem->s == "return"){
