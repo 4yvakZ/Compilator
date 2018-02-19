@@ -490,10 +490,11 @@ void Priority15()
 		Assignable(); return;
 	}
 	if (lexem->s == "(") {
-		NEExpression();
 		Get();
-		if (lexem->s != ")") { Get(); return; }
-		ERROR(")");
+		NEExpression();
+		if (lexem->s != ")") ERROR(")");
+		Get();
+		return;
 	}
 	if (lexem->id == 3)	{
 		Get();return;
@@ -803,7 +804,7 @@ int main() {
 		Program();
 	}
 	catch (string s) {
-		cout << "Error in string " << strings << "\nExpect: " << s << "\nGet: " << lexem->s;
+		cout << "Error in string " << strings << "\nExpect: " << s << "\nGet: " << lexem->s << "\n";
 		delete lexem;
 		Code.close();
 		system("pause");
