@@ -539,6 +539,7 @@ void Operators(){
 			lexem->s == "return" ||
 			lexem->s == "break" ||
 			lexem->s == "continue" ||
+			lexem->s == "echo" ||
 			lexem->s == "goto" ||
 			lexem->s == "echo" ||
 			lexem->id == 2) {
