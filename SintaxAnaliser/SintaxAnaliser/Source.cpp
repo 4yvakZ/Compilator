@@ -261,7 +261,10 @@ void CycleOperator() {
 void SpecOperator() {
 	if (lexem->s == "echo") {
 		OutPutOperator();
+		if (lexem->s != ";")ERROR(";");
+		Get();
 		return;
+		
 	}
 	if (lexem->s == "if") {
 		ConditionalOperator();
@@ -518,7 +521,7 @@ void Variable(){
 			Get();
 			return;
 		}
-		ERROR("Èìÿ");
+		ERROR("Name");
 	}
 	ERROR("$");
 }
@@ -753,7 +756,7 @@ void GotoAndChildren(){
 	if (lexem->s == "continue") { Get(); if (lexem->s != ";") ERROR(";"); Get(); return; }
 	if (lexem->s == "goto") { Get(); Goto(); if (lexem->s != ";") ERROR(";"); Get(); return; }
 	if (lexem->id == 2) { Get(); Label(); return; }
-	ERROR("return or break or continue or goto or Èìÿ");
+	ERROR("return or break or continue or goto or Name");
 }
 void Return(){
 	if (lexem->s == "return"){

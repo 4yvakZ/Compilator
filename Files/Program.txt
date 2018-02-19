@@ -3,7 +3,6 @@ $txt = "Hello";
 $txt .=  "World!"; 
 $x = 10;    $x += 1;
 $y = 5;
-$colors = array("Red", "Green", "Blue");
 
 
 echo $txt; // Display variables value

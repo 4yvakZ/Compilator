@@ -141,6 +141,7 @@ int main() {
 			state = Start;
 			if (isalpha(x)) {
 				cout << "Error" << "\n";
+				system("pause");
 				return 1;
 			}
 			break;
