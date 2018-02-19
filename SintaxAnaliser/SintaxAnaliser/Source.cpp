@@ -231,6 +231,8 @@ void ConditionalOperator() {
 		Get();
 		if (lexem->s == "{") {
 			Block();
+			if (lexem->s != "}")ERROR("}");
+			Get();
 			Else();
 			return;
 		}
@@ -552,6 +554,8 @@ void Operators(){
 		else
 		if (lexem->s == "$" ||
 			lexem->s == "(" ||
+			lexem->s == "++"||
+			lexem->s == "--" ||
 			lexem->id == 2 ||
 			lexem->id == 3) {
 			Expression();
@@ -583,10 +587,11 @@ void Operator(){
 		return;
 	}
 	if (lexem->s == "$" ||
-		lexem->s == "function"||
+		lexem->s == "--" ||
 		lexem->s == "(" ||
+		lexem->s == "++" ||
+		lexem->id == 2||
 		lexem->id == 3) {
-		printf("lol");
 		Expression();
 		if (lexem->s != ";") ERROR(";");
 		return;
@@ -596,8 +601,10 @@ void Operator(){
 
 void Expression(){
 	if (lexem->s == "$" ||
-		lexem->s == "function" ||
+		lexem->s == "++" ||
 		lexem->s == "(" ||
+		lexem->s == "--" ||
+		lexem->id == 2 ||
 		lexem->id == 3) {
 		NEExpression();
 	}else	Get();
