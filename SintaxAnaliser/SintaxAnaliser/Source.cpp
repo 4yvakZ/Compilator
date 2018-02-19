@@ -332,9 +332,12 @@ void OutPutOperator()
 
 void Get(){
 	do {
+		lexem->s = "";
+		lexem->id = 0;
 		Code >> lexem->id;
 		Code >> lexem->s;
-	}while (lexem->id == 7);
+		//if (lexem->id == 7)cout << lexem->s;
+	} while (lexem->id == 7);
 	return;
 }
 void ERROR(string s) {
@@ -443,7 +446,7 @@ void Priority11()
 		Priority12();
 	}
 }
-void Priority12()//?!!!!!!!
+void Priority12()
 {
 	if (lexem->s == "!") {
 		Sign12();
@@ -587,7 +590,7 @@ void Operator(){
 		if (lexem->s != ";") ERROR(";");
 		return;
 	}
-	ERROR("uncorrect operator");
+	ERROR("Operator");
 }
 
 void Expression(){
@@ -807,10 +810,14 @@ int main() {
 		}
 		int strings;
 		Code >> strings;
-		cout << "Error in string " << strings << "\nExpect: " << s << "\nGet: " << lexem->s << "\n";
+		cout << "Error in string " << strings << "\nExpect: " << s << "\nGet: " << lexem->s;
+		delete lexem;
+		Code.close();
 		system("pause");
 		return 0;
 	}
+	delete lexem;
+	Code.close();
 	system("pause");
 	return 0;
 }
