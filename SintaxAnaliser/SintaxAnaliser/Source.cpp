@@ -62,13 +62,13 @@ void Label();
 void ListOfArguments() {
 	if (lexem->s != "$") ERROR("$");
 	Get();
-	if (lexem->id != 2) ERROR("uncorrect name");
+	if (lexem->id != 2) ERROR("Name");
 	Get();
 	while (lexem->s == ",") {
 		Get();
 		if (lexem->s != "$") ERROR("$");
 		Get();
-		if (lexem->id != 2) ERROR("uncorrect name");
+		if (lexem->id != 2) ERROR("Name");
 		Get();
 	}
 	return;
@@ -76,7 +76,7 @@ void ListOfArguments() {
 void FuncDescription() {
 	if (lexem->s != "function") ERROR("function");
 	Get();
-	if (lexem->id != 2) ERROR("uncorrect name");
+	if (lexem->id != 2) ERROR("Name");
 	Get();
 	if (lexem->s != "(") ERROR("(");
 	Get();
@@ -130,6 +130,7 @@ void DoWhile() {
 	Get();
 	NEExpression();
 	if (lexem->s != ")") ERROR(")");
+	Get();
 }
 void While() {
 	if (lexem->s == "while") {
@@ -314,7 +315,6 @@ void FunctionCall()
 		if (lexem->s == "(") {
 			Get();
 			ListOfParameters();
-			Get();
 			if (lexem->s != ")") ERROR(")");
 			Get();
 		}
@@ -331,13 +331,12 @@ void OutPutOperator()
 
 void Get(){
 	do {
-		string s = "";
 		lexem->s = "";
 		lexem->id = 0;
 		Code >> lexem->id;
-		for (char x = Code.peek(); x != '\n'; x = Code.peek()) {
-			Code >> s;
-			lexem->s += s;
+		Code.get();
+		for (char x = Code.peek(); x != '\n'; Code.get(), x = Code.peek()) {
+			lexem->s += x;
 		}
 		if (lexem->id == 7)strings++;
 	} while (lexem->id == 7);
@@ -592,10 +591,14 @@ void Operator(){
 		lexem->s == "--" ||
 		lexem->s == "(" ||
 		lexem->s == "++" ||
-		lexem->id == 2||
+		lexem->id == 2 ||
 		lexem->id == 3) {
 		Expression();
 		if (lexem->s != ";") ERROR(";");
+		return;
+	}
+	if (lexem->s == ";") {
+		Get();
 		return;
 	}
 	ERROR("Operator");
@@ -775,10 +778,10 @@ void Element(){
 }
 
 void GotoAndChildren(){
-	if (lexem->s == "return") { Get(); Return(); if (lexem->s != ";") ERROR(";"); Get(); return; }
+	if (lexem->s == "return") { Return(); if (lexem->s != ";") ERROR(";"); Get(); return; }
 	if (lexem->s == "break") { Get(); if (lexem->s != ";") ERROR(";"); Get(); return; }
 	if (lexem->s == "continue") { Get(); if (lexem->s != ";") ERROR(";"); Get(); return; }
-	if (lexem->s == "goto") { Get(); Goto(); if (lexem->s != ";") ERROR(";"); Get(); return; }
+	if (lexem->s == "goto") { Goto(); if (lexem->s != ";") ERROR(";"); Get(); return; }
 	if (lexem->id == 2) { Get(); Label(); return; }
 	ERROR("return or break or continue or goto or Name");
 }
