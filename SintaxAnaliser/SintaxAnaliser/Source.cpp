@@ -332,8 +332,11 @@ void OutPutOperator()
 
 void Get(){
 	do {
+		lexem->s = "";
+		lexem->id = 0;
 		Code >> lexem->id;
 		Code >> lexem->s;
+		//if (lexem->id == 7)cout << lexem->s;
 	} while (lexem->id == 7);
 	return;
 }
@@ -443,7 +446,7 @@ void Priority11()
 		Priority12();
 	}
 }
-void Priority12()//?!!!!!!!
+void Priority12()
 {
 	if (lexem->s == "!") {
 		Sign12();
@@ -532,27 +535,26 @@ void Operators(){
 			FuncDescription();
 		}else	
 			if (lexem->s == "switch" ||
-			lexem->s == "if" ||
-			lexem->s == "while" ||
-			lexem->s == "do" ||
-			lexem->s == "for" ||
-			lexem->s == "return" ||
-			lexem->s == "break" ||
-			lexem->s == "continue" ||
-			lexem->s == "echo" ||
-			lexem->s == "goto" ||
-			lexem->s == "echo" ||
-			lexem->id == 2) {
-			SpecOperator();
-		}else
-			if (lexem->s == "$" ||
-				lexem->s == "(" ||
-				lexem->s == "function" ||
-				lexem->id == 3) {
-			Expression();
-			if (lexem->s != ";") ERROR(";");
-		}else 
-				if (lexem->s == ";") {
+				lexem->s == "if" ||
+				lexem->s == "while" ||
+				lexem->s == "do" ||
+				lexem->s == "for" ||
+				lexem->s == "return" ||
+				lexem->s == "break" ||
+				lexem->s == "continue" ||
+				lexem->s == "echo" ||
+				lexem->s == "goto") {
+				SpecOperator();
+			}
+			else
+				if (lexem->s == "$" ||
+					lexem->s == "(" ||
+					lexem->s == "function" ||
+					lexem->id == 3) {
+					Expression();
+					if (lexem->s != ";") ERROR(";");
+				}
+				else if (lexem->s == ";") {
 					Get();
 				}
 				else return;
@@ -576,12 +578,15 @@ void Operator(){
 		SpecOperator();
 		return;
 	}
-	if (lexem->s == "$") {
+	if (lexem->s == "$" ||
+		lexem->s == "(" ||
+		lexem->s == "function" ||
+		lexem->id == 3) {
 		Expression();
 		if (lexem->s != ";") ERROR(";");
 		return;
 	}
-	ERROR("uncorrect operator");
+	ERROR("Operator");
 }
 
 void Expression(){
@@ -802,9 +807,13 @@ int main() {
 		int strings;
 		Code >> strings;
 		cout << "Error in string " << strings << "\nExpect: " << s << "\nGet: " << lexem->s;
+		delete lexem;
+		Code.close();
 		system("pause");
 		return 0;
 	}
+	delete lexem;
+	Code.close();
 	system("pause");
 	return 0;
 }
