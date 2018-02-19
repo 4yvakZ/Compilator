@@ -540,6 +540,7 @@ void Operators(){
 			lexem->s == "break" ||
 			lexem->s == "continue" ||
 			lexem->s == "goto" ||
+			lexem->s == "echo" ||
 			lexem->id == 2) {
 			SpecOperator();
 		}else
