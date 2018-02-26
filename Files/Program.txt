@@ -4,9 +4,9 @@ $txt .=  "World!";
 $x = 10;    $x += 1;
 $y = 5;
 
-echo $txt; // Display variables value
-echo "<br>";
-echo ($x + $y)/2;
+//echo $txt; // Display variables value
+//echo "<br>";
+//echo ($x + $y)/2;
 
 
 if(($year % 100 != 0) && true){
@@ -32,7 +32,7 @@ while($x - 6 === $y || $y <= $x){
 
 do{
     $i++;
-    echo "The number is " . $i . "<br>";
+  //  echo "The number is " . $i . "<br>";
 }
 while($i <= 3);
 
@@ -44,7 +44,7 @@ for($i=1; $i<=3; $i++){
 	;
 	endif;
 	$s = $p** != $i;
-	echo "hey";
+	//echo "hey";
 }
 
 
@@ -61,10 +61,10 @@ endwhile;
 
 switch ($i)
     case 0:
-        echo "i равно 0";
+       // echo "i равно 0";
         break;
     case 1:
-        echo "i равно 1";
+       // echo "i равно 1";
         break;
     default:
         echo "i не равно to 0, 1 или 2";
@@ -74,7 +74,7 @@ endswitch;
 // Defining function
 function getSum($num1, $num2){
   $sum = $num1 + $num2;
-  echo "$sum";
+//  echo "$sum";
   return $sum;
 }
  
@@ -82,7 +82,7 @@ function getSum($num1, $num2){
 $s=getSum(10, 20);
 
 goto a;
-echo "Foo";
+//echo "Foo";
  
 a:
 echo "Bar";

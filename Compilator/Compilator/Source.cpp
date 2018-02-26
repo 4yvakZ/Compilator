@@ -421,7 +421,7 @@ void Get() {
 		lexem->id = 0;
 		Code >> lexem->id;
 		Code.get();
-		for (char x = Code.peek(); x != '\n'; Code.get(), x = Code.peek()) {
+		for (char x = Code.peek(); x != '\n' && x != EOF; Code.get(), x = Code.peek()) {
 			lexem->s += x;
 		}
 		if (lexem->id == 7)strings++;
@@ -616,7 +616,7 @@ void Program()
 	if (lexem->s != "php") ERROR("php");
 	Get();
 	Operators();
-	if (lexem->s != ">") ERROR(">");
+	if (lexem->s != ">"|| Code.eof()) ERROR(">");
 	return;
 }
 
