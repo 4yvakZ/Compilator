@@ -10,3 +10,7 @@ case
 goto
 function
 echo
+int
+bool
+char
+double
