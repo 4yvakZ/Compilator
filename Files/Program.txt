@@ -38,12 +38,11 @@ while($i <= 3);
 
 
 for($i=1; $i<=3; $i++){
-	if($s != 7){
+	if($s != 7)
 		continue;
-	}
-	else{
+	else
 	;
-	}
+	endif;
 	$s = $p** != $i;
 	echo "hey";
 }
@@ -52,8 +51,11 @@ for($i=1; $i<=3; $i++){
 while ($i <= 10)
     echo $i;
     $i++;
-    if($i==9)
+    if($i==9){
 	break;
+	}else{
+	;
+	}
 endwhile;
 
 

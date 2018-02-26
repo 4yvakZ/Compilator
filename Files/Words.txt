@@ -11,3 +11,12 @@ goto
 function
 echo
 default
+else
+int
+bool
+double
+char
+endif
+endwhile
+endfor
+endswitch

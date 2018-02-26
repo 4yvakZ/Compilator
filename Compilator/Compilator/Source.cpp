@@ -6,13 +6,97 @@
 using namespace std;
 
 static ifstream Code("D:\\IT_files\\Compilator\\Files\\Code.txt");
-struct Lex{
+struct Lex {
 	int id;
 	string s;
 };
 static Lex *lexem = new Lex;
 static int strings = 1;
-static bool isMark = false;
+
+
+//LEXIC
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <cctype>
+
+using namespace std;
+
+enum states {
+	Start,
+	A,
+	B,
+	C,
+	E,
+	F,
+	G,
+	H,
+	I
+};
+
+bool IsOperation(char x) {
+	ifstream fin("D:\\IT_files\\Compilator\\Files\\Operations.txt");
+	string a;
+	for (fin >> a; a.length() < 2; fin >> a) {
+		if (a[0] == x) {
+			fin.close();
+			return true;
+		}
+	}
+	fin.close();
+	return false;
+}
+
+bool IsSign(char x) {
+	ifstream fin("D:\\IT_files\\Compilator\\Files\\Signs.txt");
+	int a;
+	for (a = fin.get(); !fin.eof(); fin.get(), a = fin.get()) {
+		if (a == x) {
+			fin.close();
+			return true;
+		}
+	}
+	fin.close();
+	return false;
+}
+
+bool IsFinalOperation(string s) {
+	ifstream fin("D:\\IT_files\\Compilator\\Files\\Operations.txt");
+	string a;
+	for (fin >> a; !fin.eof(); fin.get(), fin >> a) {
+		if (a == s) {
+			fin.close();
+			return false;
+		}
+	}
+	if (a == s) {
+		fin.close();
+		return false;
+	}
+	fin.close();
+	return true;
+}
+
+bool IsWord(string s) {
+	ifstream fin("D:\\IT_files\\Compilator\\Files\\Words.txt");
+	string a;
+	for (fin >> a; !fin.eof(); fin.get(), fin >> a) {
+		if (a == s) {
+			fin.close();
+			return false;
+		}
+	}
+	if (a == s) {
+		fin.close();
+		return false;
+	}
+	fin.close();
+	return true;
+}
+
+//END OF LEXIC
+
+//SINTAX
 void Program();
 void ERROR(string s);
 void Get();
@@ -91,7 +175,7 @@ void Description() {
 	FuncDescription();
 	return;
 }
-void ForCondition(){
+void ForCondition() {
 	Expression();
 	if (lexem->s != ";") ERROR(";");
 	Get();
@@ -151,7 +235,6 @@ void While() {
 		Get();
 		if (lexem->s != ";") ERROR(";");
 		Get();
-		return;
 	}
 	ERROR("while");
 }
@@ -162,8 +245,6 @@ void Else1()
 		Operator();
 		Operators();
 		if (lexem->s != "endif") ERROR("endif");
-		Get();
-		return;
 	}
 	ERROR("else");
 }
@@ -220,7 +301,6 @@ void SelectOperator()
 				Get();
 				if (lexem->s != ";") ERROR(";");
 				Get();
-				return;
 			}
 			ERROR(")");
 		}
@@ -244,7 +324,6 @@ void ConditionalOperator() {
 		Operator();
 		Operators();
 		Else1();
-		return;
 	}
 	ERROR("if");
 }
@@ -269,7 +348,7 @@ void SpecOperator() {
 		if (lexem->s != ";")ERROR(";");
 		Get();
 		return;
-		
+
 	}
 	if (lexem->s == "if") {
 		ConditionalOperator();
@@ -316,9 +395,9 @@ void ListOfParameters()
 }
 void FunctionCall()
 {
-		ListOfParameters();
-		if (lexem->s != ")") ERROR(")");
-		Get();
+	ListOfParameters();
+	if (lexem->s != ")") ERROR(")");
+	Get();
 }
 void OutPutOperator()
 {
@@ -329,7 +408,7 @@ void OutPutOperator()
 	}
 }
 
-void Get(){
+void Get() {
 	do {
 		lexem->s = "";
 		lexem->id = 0;
@@ -498,19 +577,17 @@ void Priority15()
 		Get();
 		return;
 	}
-	if (lexem->id == 3)	{
-		Get();return;
+	if (lexem->id == 3) {
+		Get(); return;
 	}
 	if (lexem->id == 2) {
 		Get();
 		if (lexem->s == "(") {
-			isMark = false;
 			Get();
 			FunctionCall();
 			return;
 		}
 		if (lexem->s == ":") {
-			isMark = true;
 			Get();
 			return;
 		}
@@ -534,10 +611,10 @@ void Program()
 	return;
 }
 
-void Variable(){
-	if (lexem->s == "$"){
+void Variable() {
+	if (lexem->s == "$") {
 		Get();
-		if (lexem->id == 2){
+		if (lexem->id == 2) {
 			Get();
 			return;
 		}
@@ -546,43 +623,43 @@ void Variable(){
 	ERROR("$");
 }
 
-void Operators(){
+void Operators() {
 	while (true) {
 		if (lexem->s == "function") {
 			FuncDescription();
 		}
 		else
-		if (lexem->s == "switch" ||
-		lexem->s == "if" ||
-		lexem->s == "while" ||
-		lexem->s == "do" ||
-		lexem->s == "for" ||
-		lexem->s == "return" ||
-		lexem->s == "break" ||
-		lexem->s == "continue" ||
-		lexem->s == "echo" ||
-		lexem->s == "goto"
-		) {
-			SpecOperator();
-		}
-		else
-		if (lexem->s == "$" ||
-			lexem->s == "(" ||
-			lexem->s == "++"||
-			lexem->s == "--" ||
-			lexem->id == 2 ||
-			lexem->id == 3) {
-			Expression();
-			if (lexem->s != ";" && !isMark) ERROR(";");
-		}
-		else
-		if (lexem->s == ";") {
-			Get();
-		}
-		else return;
+			if (lexem->s == "switch" ||
+				lexem->s == "if" ||
+				lexem->s == "while" ||
+				lexem->s == "do" ||
+				lexem->s == "for" ||
+				lexem->s == "return" ||
+				lexem->s == "break" ||
+				lexem->s == "continue" ||
+				lexem->s == "echo" ||
+				lexem->s == "goto"
+				) {
+				SpecOperator();
+			}
+			else
+				if (lexem->s == "$" ||
+					lexem->s == "(" ||
+					lexem->s == "++" ||
+					lexem->s == "--" ||
+					lexem->id == 2 ||
+					lexem->id == 3) {
+					Expression();
+					if (lexem->s != ";") ERROR(";");
+				}
+				else
+					if (lexem->s == ";") {
+						Get();
+					}
+					else return;
 	}
 }
-void Operator(){
+void Operator() {
 	if (lexem->s == "function") {
 		FuncDescription();
 		return;
@@ -618,7 +695,7 @@ void Operator(){
 	ERROR("Operator");
 }
 
-void Expression(){
+void Expression() {
 	if (lexem->s == "$" ||
 		lexem->s == "++" ||
 		lexem->s == "(" ||
@@ -626,7 +703,8 @@ void Expression(){
 		lexem->id == 2 ||
 		lexem->id == 3) {
 		NEExpression();
-	}else	Get();
+	}
+	else	Get();
 	return;
 }
 void NEExpression()
@@ -653,15 +731,15 @@ void NEExpression()
 void Assignable()
 {
 	Variable();
-	while (lexem->s == "$")	{
+	while (lexem->s == "$") {
 		Variable();
 	}
-	if (lexem->s == "[")	{
+	if (lexem->s == "[") {
 		NEExpression();
 		if (lexem->s != "]") ERROR("]");
 	}
 }
-void Sign1(){
+void Sign1() {
 	if (lexem->s == "=" ||
 		lexem->s == "-=" ||
 		lexem->s == "*=" ||
@@ -674,156 +752,311 @@ void Sign1(){
 		lexem->s == "|=" ||
 		lexem->s == "^=" ||
 		lexem->s == "<<=" ||
-		lexem->s == ">>="){
+		lexem->s == ">>=") {
 		Get();
 		return;
 	}
 	ERROR("= or -= or *= or **= or += or /= or .= or %= or &= or |= or ^= or <<= or >>=");
 }
-void Sign2(){
-	if (lexem->s == "||"){
+void Sign2() {
+	if (lexem->s == "||") {
 		Get();
 		return;
 	}
 	ERROR("||");
 }
-void Sign3(){
-	if (lexem->s == "&&"){
+void Sign3() {
+	if (lexem->s == "&&") {
 		Get();
 		return;
 	}
 	ERROR("&&");
 }
-void Sign4(){
-	if (lexem->s == "|"){
+void Sign4() {
+	if (lexem->s == "|") {
 		Get();
 		return;
 	}
 	ERROR("|");
 }
-void Sign5(){
-	if (lexem->s == "^"){
+void Sign5() {
+	if (lexem->s == "^") {
 		Get();
 		return;
 	}
 	ERROR("^");
 }
-void Sign6(){
-	if (lexem->s == "&"){
+void Sign6() {
+	if (lexem->s == "&") {
 		Get();
 		return;
 	}
 	ERROR("&");
 }
-void Sign7(){
+void Sign7() {
 	if (lexem->s == "==" ||
 		lexem->s == "!=" ||
 		lexem->s == "===" ||
 		lexem->s == "!==" ||
-		lexem->s == "<=>"){
+		lexem->s == "<=>") {
 		Get();
 		return;
 	}
 	ERROR("== or != or === or !== or <=>");
 }
-void Sign8(){
+void Sign8() {
 	if (lexem->s == "<" ||
 		lexem->s == ">" ||
 		lexem->s == "<=" ||
-		lexem->s == ">="){
+		lexem->s == ">=") {
 		Get();
 		return;
 	}
 	ERROR("< or > or <= or >=");
 }
-void Sign9(){
+void Sign9() {
 	if (lexem->s == "<<" ||
-		lexem->s == ">>"){
+		lexem->s == ">>") {
 		Get();
 		return;
 	}
 	ERROR("<< or >>");
 }
-void Sign10(){
+void Sign10() {
 	if (lexem->s == "+" ||
 		lexem->s == "-" ||
-		lexem->s == "."){
+		lexem->s == ".") {
 		Get();
 		return;
 	}
 	ERROR("+ or - or .");
 }
-void Sign11(){
+void Sign11() {
 	if (lexem->s == "*" ||
 		lexem->s == "/" ||
-		lexem->s == "%"){
+		lexem->s == "%") {
 		Get();
 		return;
 	}
 	ERROR("* or / or %");
 }
-void Sign12(){
-	if (lexem->s == "!"){
+void Sign12() {
+	if (lexem->s == "!") {
 		Get();
 		return;
 	}
 	ERROR("!");
 }
-void Sign13(){
+void Sign13() {
 	if (lexem->s == "++" ||
-		lexem->s == "--"){
+		lexem->s == "--") {
 		Get();
 		return;
 	}
 	ERROR("++ or --");
 }
-void Sign14(){
-	if (lexem->s == "**"){
+void Sign14() {
+	if (lexem->s == "**") {
 		Get();
 		return;
 	}
 	ERROR("**");
 }
 
-void Element(){
+void Element() {
 	Expression();
 	Get();
 	return;
 }
 
-void GotoAndChildren(){
+void GotoAndChildren() {
 	if (lexem->s == "return") { Return(); if (lexem->s != ";") ERROR(";"); Get(); return; }
 	if (lexem->s == "break") { Get(); if (lexem->s != ";") ERROR(";"); Get(); return; }
 	if (lexem->s == "continue") { Get(); if (lexem->s != ";") ERROR(";"); Get(); return; }
 	if (lexem->s == "goto") { Goto(); if (lexem->s != ";") ERROR(";"); Get(); return; }
 	ERROR("return or break or continue or goto");
 }
-void Return(){
-	if (lexem->s == "return"){
+void Return() {
+	if (lexem->s == "return") {
 		Get();
 		Expression();
 		return;
 	}
 }
-void Goto(){
-	if (lexem->s == "goto"){
+void Goto() {
+	if (lexem->s == "goto") {
 		Get();
-		if (lexem->id == 2){
+		if (lexem->id == 2) {
 			Get();
 			return;
 		}
 	}
 }
-void Label(){
-	if (lexem->id == 2){
+void Label() {
+	if (lexem->id == 2) {
 		Get();
-		if (lexem->s == ":"){
+		if (lexem->s == ":") {
 			Get();
 			return;
 		}
 	}
 }
+
+
+//END OF SINTAX
 int main() {
+	ifstream fin("D:\\IT_files\\Compilator\\Files\\Program.txt");
+	ofstream fout("D:\\IT_files\\Compilator\\Files\\Code.txt");
+	char x, a;
+	string s;
+	int strings = 0;
+	states state = Start;
+	for (;;) {
+		switch (state) {
+		case Start:
+			x = fin.get();
+			if (x == EOF) {
+				strings++;
+				fout << "7 " << strings << "\n";
+				goto sintax;
+			}
+			else if (x == ' ' || x == '	') {
+				state = Start;
+			}
+			else if (x == '\n') {
+				state = Start;
+				strings++;
+				fout << "7 " << strings << "\n";
+			}
+			else if (x == '/') {
+				state = G;
+			}
+			else if (isalpha(x) || x == '_') {
+				state = C;
+			}
+			else if (isdigit(x)) {
+				state = B;
+			}
+			else if (x == '"') {
+				state = E;
+			}
+			else if (IsOperation(x)) {
+				state = A;
+			}
+			else if (IsSign(x)) {
+				state = Start;
+				fout << "5 " << x << "\n";
+			}
+			else {
+				state = Start;
+				fout << "6 " << x << "\n";
+			}
+			break;
+		case A:
+			fout << "4 ";
+			s = "";
+			s += x;
+			for (x = fin.peek(), s += x; !IsFinalOperation(s);) {
+				fin.get();
+				x = fin.peek();
+				s += x;
+			}
+			for (int i = 0; i < s.length() - 1; fout << s[i], i++);
+			fout << "\n";
+			state = Start;
+			break;
+		case B:
+			fout << "3 " << x;
+			for (x = fin.peek(); isdigit(x); fout << x, fin.get(), x = fin.peek());
+			if (x == '.') {
+				fin.get();
+				fout << x;
+				x = fin.peek();
+				for (x = fin.peek(); isdigit(x); fout << x, fin.get(), x = fin.peek());
+			}
+			fout << "\n";
+			state = Start;
+			if (isalpha(x)) {
+				cout << "Error" << "\n";
+				system("pause");
+				return 1;
+			}
+			break;
+		case C:
+			s = "";
+			s += x;
+			state = Start;
+			for (x = fin.peek(); isalnum(x) || x == '_'; s += x, fin.get(), x = fin.peek());
+			if (IsWord(s)) {
+				if (s == "true" || s == "false") {
+					fout << "3 ";
+				}
+				else {
+					fout << "2 ";
+				}
+			}
+			else {
+				fout << "1 ";
+			}
+			fout << s << "\n";
+			break;
+		case E:
+			fout << "3 " << x;
+			for (x = fin.get(); x != '"'; fout << x, x = fin.get());
+			fout << x << "\n";
+			state = Start;
+			break;
+		case G:
+			x = fin.peek();
+			if (x == '/') {
+				state = H;
+				fin.get();
+			}
+			else if (x == '*') {
+				fin.get();
+				state = I;
+			}
+			else if (x == '=') {
+				fin.get();
+				fout << "4 /=\n";
+				state = Start;
+			}
+			else {
+				fout << "4 /\n";
+				state = Start;
+			}
+			break;
+		case H:
+			for (x = fin.get(); x != '\n' && x != EOF; x = fin.get());
+			state = Start;
+			strings++;
+			fout << "7 " << strings << "\n";
+			break;
+		case I:
+			for (x = fin.get(); ;) {
+				if (x == '\n') {
+					strings++;
+					fout << "7 " << strings << "\n";
+				}
+				if (x == '*') {
+					x = fin.get();
+					if (x == '/') {
+						break;
+					}
+				}
+				else {
+					x = fin.get();
+				}
+			}
+			state = Start;
+			break;
+		default:
+			break;
+		}
+	}
+
+sintax:fout.close();
+	fin.close();
 	Get();
 	try {
 		Program();
