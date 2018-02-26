@@ -12,6 +12,7 @@ struct Lex {
 };
 static Lex *lexem = new Lex;
 static int strings = 1;
+static bool isMark = false;
 
 
 //LEXIC
@@ -97,6 +98,7 @@ bool IsWord(string s) {
 //END OF LEXIC
 
 //SINTAX
+
 void Program();
 void ERROR(string s);
 void Get();
@@ -235,6 +237,7 @@ void While() {
 		Get();
 		if (lexem->s != ";") ERROR(";");
 		Get();
+		return;
 	}
 	ERROR("while");
 }
@@ -245,6 +248,8 @@ void Else1()
 		Operator();
 		Operators();
 		if (lexem->s != "endif") ERROR("endif");
+		Get();
+		return;
 	}
 	ERROR("else");
 }
@@ -301,6 +306,7 @@ void SelectOperator()
 				Get();
 				if (lexem->s != ";") ERROR(";");
 				Get();
+				return;
 			}
 			ERROR(")");
 		}
@@ -324,6 +330,7 @@ void ConditionalOperator() {
 		Operator();
 		Operators();
 		Else1();
+		return;
 	}
 	ERROR("if");
 }
@@ -583,11 +590,13 @@ void Priority15()
 	if (lexem->id == 2) {
 		Get();
 		if (lexem->s == "(") {
+			isMark = false;
 			Get();
 			FunctionCall();
 			return;
 		}
 		if (lexem->s == ":") {
+			isMark = true;
 			Get();
 			return;
 		}
@@ -650,7 +659,7 @@ void Operators() {
 					lexem->id == 2 ||
 					lexem->id == 3) {
 					Expression();
-					if (lexem->s != ";") ERROR(";");
+					if (lexem->s != ";" && !isMark) ERROR(";");
 				}
 				else
 					if (lexem->s == ";") {
@@ -901,8 +910,6 @@ void Label() {
 		}
 	}
 }
-
-
 //END OF SINTAX
 int main() {
 	ifstream fin("D:\\IT_files\\Compilator\\Files\\Program.txt");
