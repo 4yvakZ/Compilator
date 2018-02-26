@@ -3,8 +3,6 @@ $txt = "Hello";
 $txt .=  "World!"; 
 $x = 10;    $x += 1;
 $y = 5;
-$colors = array("Red", "Green", "Blue");
-
 
 echo $txt; // Display variables value
 echo "<br>";
@@ -14,16 +12,15 @@ echo ($x + $y)/2;
 if(($year % 100 != 0) && true){
 	$year++;
 } 
-else
+else{
 	++$year;
-
+}
 
 switch($today){
 case "Sat":
 	$x= $x <=> $y;
         break;
 default:
-	$array[6] *= $y;
 	break;
 }
 
@@ -41,14 +38,18 @@ while($i <= 3);
 
 
 for($i=1; $i<=3; $i++){
-	if($s != 7)
+	if($s != 7){
 		continue;
+	}
+	else{
+	;
+	}
 	$s = $p** != $i;
 	echo "hey";
 }
 
 
-while ($i <= 10):
+while ($i <= 10)
     echo $i;
     $i++;
     if($i==9)
@@ -56,7 +57,7 @@ while ($i <= 10):
 endwhile;
 
 
-switch ($i):
+switch ($i)
     case 0:
         echo "i равно 0";
         break;
@@ -79,10 +80,10 @@ function getSum($num1, $num2){
 $s=getSum(10, 20);
 
 goto a;
-echo 'Foo';
+echo "Foo";
  
 a:
-echo 'Bar';
+echo "Bar";
 
 
-?>
+>
