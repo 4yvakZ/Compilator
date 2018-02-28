@@ -8,6 +8,9 @@ $y = 5;
 //echo "<br>";
 //echo ($x + $y)/2;
 
+int a, b, c;
+double CoolVar;
+bool a;
 
 if(($year % 100 != 0) && true){
 	$year++;

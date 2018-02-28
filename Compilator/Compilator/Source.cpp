@@ -662,10 +662,23 @@ void Operators() {
 					if (lexem->s != ";" && !isMark) ERROR(";");
 				}
 				else
-					if (lexem->s == ";") {
+					if (lexem->s == "int" ||
+						lexem->s == "double" ||
+						lexem->s == "bool" ||
+						lexem->s == "char") {
+						do {
+							Get();
+							if (lexem->id != 2) ERROR("name");
+							Get();
+						} while (lexem->s == ",");
+						if (lexem->s != ";") ERROR(";");
 						Get();
 					}
-					else return;
+					else
+						if (lexem->s == ";") {
+							Get();
+						}
+						else return;
 	}
 }
 void Operator() {
@@ -700,6 +713,18 @@ void Operator() {
 	if (lexem->s == ";") {
 		Get();
 		return;
+	}
+	if (lexem->s == "int" ||
+		lexem->s == "double" ||
+		lexem->s == "bool" ||
+		lexem->s == "char") {
+		do {
+			Get();
+			if (lexem->id != 2) ERROR("name");
+			Get();
+		} while (lexem->s == ",");
+		if (lexem->s != ";") ERROR(";");
+		Get();
 	}
 	ERROR("Operator");
 }
