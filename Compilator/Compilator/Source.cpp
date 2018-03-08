@@ -12,7 +12,6 @@ struct Lex {
 };
 static Lex *lexem = new Lex;
 static int strings = 1;
-static bool isMark = false;
 
 
 //LEXIC
@@ -598,15 +597,13 @@ void Priority15()
 	if (lexem->id == 2) {
 		Get();
 		if (lexem->s == "(") {
-			isMark = false;
 			Get();
 			FunctionCall();
 			return;
 		}
 		if (lexem->s == ":") {
-			isMark = true;
 			Get();
-			return;
+			throw(1);
 		}
 		ERROR("( or :");
 	}
@@ -666,8 +663,11 @@ void Operators() {
 					lexem->s == "--" ||
 					lexem->id == 2 ||
 					lexem->id == 3) {
-					Expression();
-					if (lexem->s != ";" && !isMark) ERROR(";");
+					try {
+						Expression();
+						if (lexem->s != ";") ERROR(";");
+					}
+					catch (int a) {};
 				}
 				else
 					if (lexem->s == "int" ||
@@ -714,8 +714,11 @@ void Operator() {
 		lexem->s == "++" ||
 		lexem->id == 2 ||
 		lexem->id == 3) {
-		Expression();
-		if (lexem->s != ";") ERROR(";");
+		try {
+			Expression();
+			if (lexem->s != ";") ERROR(";");
+		}
+		catch (int a) {};
 		return;
 	}
 	if (lexem->s == ";") {
@@ -934,15 +937,7 @@ void Goto() {
 		}
 	}
 }
-void Label() {
-	if (lexem->id == 2) {
-		Get();
-		if (lexem->s == ":") {
-			Get();
-			return;
-		}
-	}
-}
+
 //END OF SINTAX
 int main() {
 	ifstream fin("D:\\IT_files\\Compilator\\Files\\Program.txt");
@@ -1017,9 +1012,9 @@ int main() {
 			fout << "\n";
 			state = Start;
 			if (isalpha(x)) {
-				cout << "Error" << "\n";
+				cout << "Lexical ERROR in string " << strings + 1 << "\n";
 				system("pause");
-				return 1;
+				return 0;
 			}
 			break;
 		case C:
