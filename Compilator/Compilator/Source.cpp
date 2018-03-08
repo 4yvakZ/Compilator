@@ -3,7 +3,10 @@
 #include <string>
 #include <cctype>
 #include <stdio.h>
+
 using namespace std;
+
+
 
 static ifstream Code("D:\\IT_files\\Compilator\\Files\\Code.txt");
 struct Lex {
@@ -427,9 +430,12 @@ void Get() {
 				lexem->s += x;
 			}
 		} else {
-			for (; x != '"' && x != EOF; Code.get(), x = Code.peek()) {
+			lexem->s += x;
+			for (Code.get(), x = Code.peek(); x != '"' && x != EOF; Code.get(), x = Code.peek()) {
 				lexem->s += x;
 			}
+			lexem->s += x;
+			Code.get();
 		}
 		if (lexem->id == 7)strings++;
 	} while (lexem->id == 7);
