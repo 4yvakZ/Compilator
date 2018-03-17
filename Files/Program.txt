@@ -1,6 +1,7 @@
 <?php
-
-a:
-echo "Bar";
-
+int $a, $b=$a, $c;
+string $s = "adasda";
+for(;;){
+int $a, $c, $z;
+}
 >

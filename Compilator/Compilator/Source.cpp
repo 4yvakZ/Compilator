@@ -7,7 +7,6 @@
 using namespace std;
 
 
-
 static ifstream Code("D:\\IT_files\\Compilator\\Files\\Code.txt");
 struct Lex {
 	int id;
@@ -16,6 +15,70 @@ struct Lex {
 static Lex *lexem = new Lex;
 static int strings = 1;
 
+//TID
+enum Type {
+	Int,
+	Double,
+	//Char,
+	Bool,
+	String
+};
+struct Tid {
+	Type type;
+	Tid *next;
+	string name;
+	string value;
+};
+
+static Tid *L = new Tid;
+static Tid *L1 = nullptr;
+
+void AddID(string name, string value, Type type, Tid *&L) {
+	Tid *p;
+	for (p = L; p != nullptr && p != L1; p = p->next) {
+		if (p->name == name) {
+			throw(1);
+		}
+	}
+	p = new Tid;
+	p->type = type;
+	p->name = name;
+	p->value = value;
+	p->next = L;
+	L = p;
+}
+
+Type CheckID(string name, Tid *&L) {
+	for (Tid *p = L; p != nullptr; p = p->next) {
+		if (p->name == name) {
+			return p->type;
+		}
+	}
+	throw(2);
+}
+void DeleteElem(Tid *&L) {
+	if (L == nullptr)return;
+	Tid *p = L;
+	L = L->next;
+	p->next = nullptr;
+	delete p;
+}
+
+void DeleteAll(Tid *&L) {
+	for (; L != nullptr; DeleteElem(L));
+}
+
+void DeleteUntil(Tid *&L, Tid *&L1) {
+	Tid *q = L;
+	if (L == L1)return;
+	for (; q->next != L1; q = q->next);
+	q->next = nullptr;
+	q = L;
+	L = L1;
+	DeleteAll(q);
+}
+
+//END OF TID
 
 //LEXIC
 #include <iostream>
@@ -146,7 +209,6 @@ void Element();
 void GotoAndChildren();
 void Return();
 void Goto();
-void Label();
 
 void ListOfArguments() {
 	if (lexem->s != "$") ERROR("$");
@@ -191,6 +253,8 @@ void ForCondition() {
 }
 void For()
 {
+	Tid *p = L1;
+	L1 = L;
 	if (lexem->s != "for") ERROR("for");
 	Get();
 	if (lexem->s != "(") ERROR("for");
@@ -200,6 +264,8 @@ void For()
 	Get();
 	if (lexem->s == "{") {
 		Block();
+		DeleteUntil(L, L1); 
+		L1 = p;
 		return;
 	}
 	Operator();
@@ -208,8 +274,12 @@ void For()
 	Get();
 	if (lexem->s != ";") ERROR(";");
 	Get();
+	DeleteUntil(L, L1);
+	L1 = p;
 }
 void DoWhile() {
+	Tid *p = L1;
+	L1 = L;
 	if (lexem->s != "do") ERROR("do");
 	Get();
 	Block();
@@ -220,8 +290,12 @@ void DoWhile() {
 	NEExpression();
 	if (lexem->s != ")") ERROR(")");
 	Get();
+	DeleteUntil(L, L1);
+	L1 = p;
 }
 void While() {
+	Tid *p = L1;
+	L1 = L;
 	if (lexem->s == "while") {
 		Get();
 		if (lexem->s != "(") ERROR("(");
@@ -231,6 +305,8 @@ void While() {
 		Get();
 		if (lexem->s == "{") {
 			Block();
+			DeleteUntil(L, L1);
+			L1 = p;
 			return;
 		}
 		Operator();
@@ -239,35 +315,49 @@ void While() {
 		Get();
 		if (lexem->s != ";") ERROR(";");
 		Get();
+		DeleteUntil(L, L1);
+		L1 = p;
 		return;
 	}
 	ERROR("while");
 }
 void Else1()
 {
+	Tid *p = L1;
+	L1 = L;
 	if (lexem->s == "else") {
 		Get();
 		Operator();
 		Operators();
 		if (lexem->s != "endif") ERROR("endif");
 		Get();
+		DeleteUntil(L, L1);
+		L1 = p;
 		return;
 	}
 	ERROR("else");
 }
 void Else() {
+	Tid *p = L1;
+	L1 = L;
 	if (lexem->s != "else")ERROR("else");
 	Get();
 	Block();
+	DeleteUntil(L, L1);
+	L1 = p;
 }
 void Case() {
-	if (lexem->s == "case") {
+	Tid *p = L1;
+	L1 = L;
+	if (lexem->s == "case") {	
 		Get();
 		if (lexem->id == 3) {
 			Get();
 			if (lexem->s != ":") ERROR(":");
 			Get();
 			Operators();
+			DeleteUntil(L, L1);
+			L1 = p;
 			return;
 		}
 		ERROR("Const");
@@ -276,6 +366,8 @@ void Case() {
 		if (lexem->s != ":") ERROR(":");
 		Get();
 		Operators();
+		DeleteUntil(L, L1);
+		L1 = p;
 		return;
 	}
 	ERROR("Case or default");
@@ -609,7 +701,7 @@ void Priority15()
 		}
 		if (lexem->s == ":") {
 			Get();
-			throw(1);
+			throw(1.0);
 		}
 		ERROR("( or :");
 	}
@@ -673,17 +765,40 @@ void Operators() {
 						Expression();
 						if (lexem->s != ";") ERROR(";");
 					}
-					catch (int a) {};
+					catch (double a) {};
 				}
 				else
 					if (lexem->s == "int" ||
 						lexem->s == "double" ||
 						lexem->s == "bool" ||
-						lexem->s == "char") {
+						//lexem->s == "char"||
+						lexem->s == "string") {
+						Type type;
+						if (lexem->s == "int") {
+							type = Int;
+						} 
+						else if (lexem->s == "double") {
+							type = Double;
+						}
+						else if (lexem->s == "bool") {
+							type = Bool;
+						}
+						else if (lexem->s == "string") {
+							type = String;
+						}
+						else {
+							type = Char;
+						}
 						do {
 							Get();
-							if (lexem->id != 2) ERROR("name");
+							if (lexem->s != "$") ERROR("$");
 							Get();
+							if (lexem->id != 2) ERROR("name");
+							AddID(lexem->s, "", type, L);
+							Get();
+							if (lexem->s == "=") {
+								NEExpression();
+							}
 						} while (lexem->s == ",");
 						if (lexem->s != ";") ERROR(";");
 						Get();
@@ -734,14 +849,38 @@ void Operator() {
 	if (lexem->s == "int" ||
 		lexem->s == "double" ||
 		lexem->s == "bool" ||
-		lexem->s == "char") {
+		//lexem->s == "char" ||
+		lexem->s == "string") {
+		Type type;
+		if (lexem->s == "int") {
+			type = Int;
+		}
+		else if (lexem->s == "double") {
+			type = Double;
+		}
+		else if (lexem->s == "bool") {
+			type = Bool;
+		}
+		else if (lexem->s == "string") {
+			type = String;
+		}
+		else {
+			type = Char;
+		}
 		do {
 			Get();
-			if (lexem->id != 2) ERROR("name");
+			if (lexem->s != "$") ERROR("$");
 			Get();
+			if (lexem->id != 2) ERROR("name");
+			AddID(lexem->s, "", type, L);
+			Get();
+			if (lexem->s == "=") {
+				Expression();
+			}
 		} while (lexem->s == ",");
 		if (lexem->s != ";") ERROR(";");
 		Get();
+		return;
 	}
 	ERROR("Operator");
 }
@@ -755,7 +894,6 @@ void Expression() {
 		lexem->id == 3) {
 		NEExpression();
 	}
-	else	Get();
 	return;
 }
 void NEExpression()
@@ -945,6 +1083,14 @@ void Goto() {
 }
 
 //END OF SINTAX
+
+void OutTID() {
+	ofstream fout("D:\\IT_files\\Compilator\\Files\\TID.txt");
+	for (Tid *p = L; p != nullptr; p = p->next) {
+		fout << p->type << " | " << p->value << " | " << p->name<<"\n";
+	}
+	fout.close();
+}
 int main() {
 	ifstream fin("D:\\IT_files\\Compilator\\Files\\Program.txt");
 	ofstream fout("D:\\IT_files\\Compilator\\Files\\Code.txt");
@@ -1099,17 +1245,36 @@ int main() {
 sintax:fout.close();
 	fin.close();
 	Get();
+	L = nullptr;
 	try {
 		Program();
 	}
 	catch (string s) {
 		cout << "Error in string " << strings << "\nExpect: " << s << "\nGet: " << lexem->s << "\n";
+		OutTID();
+		DeleteAll(L);
 		delete lexem;
 		Code.close();
 		system("pause");
 		return 0;
 	}
+	catch (int x) {
+		if (x == 1) {
+			cout << "Error in string " << strings << endl << lexem->s << " is initialized saveral times";
+		}
+		if (x == 2) {
+			cout << "Error in string " << strings << endl << lexem->s << " isn't initialized";
+		}
+		OutTID();
+		delete lexem;
+		DeleteAll(L);
+		Code.close();
+		system("pause");
+		return 0;
+	}
 	delete lexem;
+	OutTID();
+	DeleteAll(L);
 	Code.close();
 	system("pause");
 	return 0;
