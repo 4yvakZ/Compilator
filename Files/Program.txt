@@ -1,7 +1,8 @@
 <?php
-int $a, $b=$a, $c;
-string $s = "adasda";
-for(;;){
-int $a, $c, $z;
+int $a, $b, $c = $b;
+for(;$a=3;){
+$a=5;
 }
+
+$b=$a++;
 >

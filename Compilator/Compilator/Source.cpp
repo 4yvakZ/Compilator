@@ -21,7 +21,8 @@ enum Type {
 	Double,
 	//Char,
 	Bool,
-	String
+	String,
+	Operation
 };
 struct Tid {
 	Type type;
@@ -98,13 +99,135 @@ void push2(STEK *&stek, string s) {
 	p->next = stek;
 	stek = p;
 	p->op = s;
+	p->type = Operation;
+}
+STEK *pop(STEK *&stek) {
+	if (stek != nullptr) {
+		STEK *q;
+		q = stek;
+		stek = stek->next;
+		q->next = nullptr;
+		return q;
+	}
 }
 void check_op(STEK *&stek) {
-
+	Type type1, type2;
+	string op;
+	STEK *p;
+	p = pop(stek);
+	type2 = p->type;
+	delete p;
+	p = pop(stek);
+	op = p->op;
+	delete p;
+	p = pop(stek); 
+	type1 = p->type;
+	delete p;
+	if (op == "**" || op == "**=") {
+		if ((type1 == Int || type1 == Double) && type2 == Int) {
+			push1(stek, type1);
+			return;
+		}
+	}
+	else if (op == "*" || op == "+" || op == "-"||op == "/") {
+		if ((type1 == Int || type1 == Double) && (type2 == Int || type2 == Double)) {
+			if (type1 == Double || type2 == Double) {
+				push1(stek, Double);
+				return;
+			} else {
+				push1(stek, Int);
+				return;
+			}
+		}
+	}
+	else if (op == "%" || op == "<<" || op == ">>" || op == "&" || op == "^" || op == "|" ||
+		op == "%=" || op == ">>=" || op == "<<=" || op == "&=" || op == "^=" || op == "|=") {
+		if (type1 == Int && type2 == Int) {
+			push1(stek, Int);
+			return;
+		}
+	}
+	else if (op == "."||op==".=") {
+		if (type1 == String && type2 == String) {
+			push1(stek, String);
+			return;
+		}
+	}
+	else if (op == "<" || op == ">" || op == ">=" || op == "<=") {
+		if ((type1 == Int || type1 == Double) && (type2 == Int || type2 == Double)) {
+			push1(stek, Bool);
+			return;
+		}
+	}
+	else if (op == "&&" || op == "||") {
+		if (type1 == Bool && type2 == Bool) {
+			push1(stek, Bool);
+			return;
+		}
+	}
+	else if (op == "=") {
+		if (type1 == type2) {
+			push1(stek, type2);
+			return;
+		}
+		else if ((type1 == Int || type1 == Double) && (type2 == Int || type2 == Double)) {
+			push1(stek, type2);
+			return;
+		}
+	}
+	else if (op == "-=" || op == "+=" || op == "*=" || op == "/=") {
+		if ((type1 == Int || type1 == Double) && (type2 == Int || type2 == Double)) {
+			push1(stek, type1);
+			return;
+		}
+	}
+	else if (op == "==" || op == "===" || op == "<=>" || op == "<>" || op == "!="
+		|| op == "!==") {
+		if (type1 == type2) {
+			push1(stek, Bool);
+			return;
+		}
+		else if ((type1 == Int || type1 == Double) && (type2 == Int || type2 == Double)) {
+			push1(stek, Bool);
+			return;
+		}
+	}
 	throw (3);
 }
 void check_not(STEK *&stek) {
-	
+	Type type;
+	string op;
+	STEK *p;
+	p = pop(stek);
+	if (p->op == "++" || "--") {
+		delete p;
+		p = pop(stek);
+		if (p->type == Int) {
+			delete p;
+			push1(stek, Int);
+			return;
+		}
+	}
+	else{
+		type = p->type;
+		delete p;
+		p = pop(stek);
+		op = p->op;
+		delete p;
+		if (op == "++" || op == "--") {
+			if (type == Int) {
+				push1(stek, Int);
+				return;
+			}
+		}
+		else if (op == "!") {
+			if (type == Bool) {
+				push1(stek, Bool);
+				return;
+			}
+		}
+	}
+
 	throw (3);
 }
 void delete_elem(STEK *&stek) {
@@ -244,7 +367,6 @@ void Priority14();
 void Priority15();
 
 void Block();
-void Element();
 void GotoAndChildren();
 void Return();
 void Goto();
@@ -282,12 +404,21 @@ void Description() {
 }
 void ForCondition() {
 	Expression();
+	if (stek != nullptr)
+		if (stek->next != nullptr)throw(3);
+	delete_stek(stek);
 	if (lexem->s != ";") ERROR(";");
 	Get();
 	Expression();
+	if (stek != nullptr)
+		if (stek->next != nullptr || stek->type != Bool)throw(3);
+	delete_stek(stek);
 	if (lexem->s != ";") ERROR(";");
 	Get();
 	Expression();
+	if (stek != nullptr)
+		if (stek->next != nullptr)throw(3);
+	delete_stek(stek);
 	return;
 }
 void For()
@@ -327,6 +458,9 @@ void DoWhile() {
 	if (lexem->s != "(") ERROR("(");
 	Get();
 	NEExpression();
+	if (stek != nullptr)
+	if (stek->next != nullptr || stek->type != Bool)throw(3);
+	delete_stek(stek);
 	if (lexem->s != ")") ERROR(")");
 	Get();
 	DeleteUntil(L, L1);
@@ -340,6 +474,9 @@ void While() {
 		if (lexem->s != "(") ERROR("(");
 		Get();
 		NEExpression();
+		if (stek != nullptr)
+			if (stek->next != nullptr || stek->type != Bool)throw(3);
+		delete_stek(stek);
 		if (lexem->s != ")") ERROR(")");
 		Get();
 		if (lexem->s == "{") {
@@ -385,19 +522,41 @@ void Else() {
 	DeleteUntil(L, L1);
 	L1 = p;
 }
-void Case() {
+void Case(Type type1) {
 	Tid *p = L1;
+	Type type2;
 	L1 = L;
 	if (lexem->s == "case") {	
 		Get();
 		if (lexem->id == 3) {
-			Get();
-			if (lexem->s != ":") ERROR(":");
-			Get();
-			Operators();
-			DeleteUntil(L, L1);
-			L1 = p;
-			return;
+			if (lexem->s[0] == '"') {
+				type2 = String;
+			}
+			else if (lexem->s == "true" || lexem->s == "false") {
+				type2 = Bool;
+			}
+			else {
+				for (int i = 0; i < lexem->s.length(); i++) {
+					if (lexem->s[i] == '.') {
+						type2 = Double;
+						Get();
+						return;
+					}
+				}
+				type2 = Int;
+			}
+			if (type1 == type2 || type1 == Double && type2 == Int) {
+				Get();
+				if (lexem->s != ":") ERROR(":");
+				Get();
+				Operators();
+				DeleteUntil(L, L1);
+				L1 = p;
+				return;
+			}
+			else {
+				throw(3);
+			}
 		}
 		ERROR("Const");
 	} if (lexem->s == "default") {
@@ -418,21 +577,25 @@ void SelectOperator()
 		if (lexem->s == "(") {
 			Get();
 			NEExpression();
+			if (stek != nullptr)
+			if (stek->next != nullptr)throw(3);
+			Type type = stek->type;
+			delete_stek(stek);
 			if (lexem->s == ")") {
 				Get();
 				if (lexem->s == "{") {
 					Get();
-					Case();
+					Case(type);
 					while (lexem->s == "case" ||
 						lexem->s == "default") {
-						Case();
+						Case(type);
 					}
 					if (lexem->s != "}") ERROR("}");
 					Get();
 					return;
 				}
 				do {
-					Case();
+					Case(type);
 				} while (lexem->s == "case" ||
 					lexem->s == "default");
 				if (lexem->s != "endswitch") ERROR("endswitch");
@@ -453,6 +616,9 @@ void ConditionalOperator() {
 		if (lexem->s != "(") ERROR("(");
 		Get();
 		NEExpression();
+		if (stek != nullptr)
+		if (stek->next != nullptr || stek->type != Bool)throw(3);
+		delete_stek(stek);
 		if (lexem->s != ")") ERROR(")");
 		Get();
 		if (lexem->s == "{") {
@@ -527,10 +693,16 @@ void Block() {
 void ListOfParameters()
 {
 	NEExpression();
+	if (stek != nullptr)
+	if (stek->next != nullptr)throw(3);
+	delete_stek(stek);
 	while (lexem->s == ",")
 	{
 		Get();
 		NEExpression();
+		if (stek != nullptr)
+		if (stek->next != nullptr)throw(3);
+		delete_stek(stek);
 	}
 }
 void FunctionCall()
@@ -545,6 +717,9 @@ void OutPutOperator()
 	{
 		Get();
 		Expression();
+		if (stek != nullptr)
+		if (stek->next != nullptr)throw(3);
+		delete_stek(stek);
 	}
 }
 
@@ -583,6 +758,7 @@ void Priority2()
 	{
 		Sign2();
 		Priority3();
+		check_op(stek);
 	}
 }
 void Priority3()
@@ -592,6 +768,7 @@ void Priority3()
 	{
 		Sign3();
 		Priority4();
+		check_op(stek);
 	}
 }
 void Priority4()
@@ -601,6 +778,7 @@ void Priority4()
 	{
 		Sign4();
 		Priority5();
+		check_op(stek);
 	}
 }
 void Priority5()
@@ -610,6 +788,7 @@ void Priority5()
 	{
 		Sign5();
 		Priority6();
+		check_op(stek);
 	}
 }
 void Priority6()
@@ -619,6 +798,7 @@ void Priority6()
 	{
 		Sign6();
 		Priority7();
+		check_op(stek);
 	}
 }
 void Priority7()
@@ -632,6 +812,7 @@ void Priority7()
 	{
 		Sign7();
 		Priority8();
+		check_op(stek);
 	}
 }
 void Priority8()
@@ -644,6 +825,7 @@ void Priority8()
 	{
 		Sign8();
 		Priority9();
+		check_op(stek);
 	}
 }
 void Priority9()
@@ -654,6 +836,7 @@ void Priority9()
 	{
 		Sign9();
 		Priority10();
+		check_op(stek);
 	}
 }
 void Priority10()
@@ -665,6 +848,7 @@ void Priority10()
 	{
 		Sign10();
 		Priority11();
+		check_op(stek);
 	}
 }
 void Priority11()
@@ -676,6 +860,7 @@ void Priority11()
 	{
 		Sign11();
 		Priority12();
+		check_op(stek);
 	}
 }
 void Priority12()
@@ -683,6 +868,7 @@ void Priority12()
 	if (lexem->s == "!") {
 		Sign12();
 		Priority13();
+		check_not(stek);
 		return;
 	}
 	Priority13();
@@ -692,9 +878,10 @@ void Priority13()
 {
 	if (lexem->s == "++" ||
 		lexem->s == "--")
-	{
+	{	
 		Sign13();
 		Priority14();
+		check_not(stek);
 	}
 	else
 	{
@@ -702,6 +889,7 @@ void Priority13()
 		if (lexem->s == "++" ||
 			lexem->s == "--") {
 			Sign13();
+			check_not(stek);
 		}
 		return;
 	}
@@ -714,6 +902,7 @@ void Priority14()
 	{
 		Sign14();
 		Priority15();
+		check_op(stek);
 	}
 }
 void Priority15()
@@ -819,6 +1008,9 @@ void Operators() {
 					lexem->id == 3) {
 					try {
 						Expression();
+						if (stek != nullptr)
+						if (stek->next != nullptr)throw(3);
+						delete_stek(stek);
 						if (lexem->s != ";") ERROR(";");
 					}
 					catch (double a) {};
@@ -857,13 +1049,10 @@ void Operators() {
 							AddID(lexem->s, "", type, L);
 							Get();
 							if (lexem->s == "=") {
-								push2(stek, "=");
 								NEExpression();
 							}
-							else {
-								delete_elem(stek);
-							}
 						} while (lexem->s == ",");
+						delete_elem(stek);
 						if (lexem->s != ";") ERROR(";");
 						Get();
 					}
@@ -901,6 +1090,9 @@ void Operator() {
 		lexem->id == 3) {
 		try {
 			Expression();
+			if (stek != nullptr)
+			if (stek->next != nullptr)throw(3);
+			delete_stek(stek);
 			if (lexem->s != ";") ERROR(";");
 		}
 		catch (int a) {};
@@ -945,11 +1137,13 @@ void Operator() {
 			if (lexem->s == "=") {
 				push2(stek, "=");
 				NEExpression();
-			}
-			else {
-				delete_elem(stek);
+				check_op(stek);
+				if (stek != nullptr)
+				if (stek->next != nullptr)throw(3);
+				delete_stek(stek);
 			}
 		} while (lexem->s == ",");
+		delete_elem(stek);
 		if (lexem->s != ";") ERROR(";");
 		Get();
 		return;
@@ -986,6 +1180,7 @@ void NEExpression()
 		lexem->s == ">>=") {
 		Sign1();
 		NEExpression();
+		check_op(stek);
 	}
 	return;
 }
@@ -1011,6 +1206,7 @@ void Sign1() {
 		lexem->s == "^=" ||
 		lexem->s == "<<=" ||
 		lexem->s == ">>=") {
+		push2(stek, lexem->s);
 		Get();
 		return;
 	}
@@ -1018,6 +1214,7 @@ void Sign1() {
 }
 void Sign2() {
 	if (lexem->s == "||") {
+		push2(stek, lexem->s);
 		Get();
 		return;
 	}
@@ -1025,6 +1222,7 @@ void Sign2() {
 }
 void Sign3() {
 	if (lexem->s == "&&") {
+		push2(stek, lexem->s);
 		Get();
 		return;
 	}
@@ -1032,6 +1230,7 @@ void Sign3() {
 }
 void Sign4() {
 	if (lexem->s == "|") {
+		push2(stek, lexem->s);
 		Get();
 		return;
 	}
@@ -1039,6 +1238,7 @@ void Sign4() {
 }
 void Sign5() {
 	if (lexem->s == "^") {
+		push2(stek, lexem->s);
 		Get();
 		return;
 	}
@@ -1046,6 +1246,7 @@ void Sign5() {
 }
 void Sign6() {
 	if (lexem->s == "&") {
+		push2(stek, lexem->s);
 		Get();
 		return;
 	}
@@ -1057,6 +1258,7 @@ void Sign7() {
 		lexem->s == "===" ||
 		lexem->s == "!==" ||
 		lexem->s == "<=>") {
+		push2(stek, lexem->s);
 		Get();
 		return;
 	}
@@ -1067,6 +1269,7 @@ void Sign8() {
 		lexem->s == ">" ||
 		lexem->s == "<=" ||
 		lexem->s == ">=") {
+		push2(stek, lexem->s);
 		Get();
 		return;
 	}
@@ -1075,6 +1278,7 @@ void Sign8() {
 void Sign9() {
 	if (lexem->s == "<<" ||
 		lexem->s == ">>") {
+		push2(stek, lexem->s);
 		Get();
 		return;
 	}
@@ -1084,6 +1288,7 @@ void Sign10() {
 	if (lexem->s == "+" ||
 		lexem->s == "-" ||
 		lexem->s == ".") {
+		push2(stek, lexem->s);
 		Get();
 		return;
 	}
@@ -1093,6 +1298,7 @@ void Sign11() {
 	if (lexem->s == "*" ||
 		lexem->s == "/" ||
 		lexem->s == "%") {
+		push2(stek, lexem->s);
 		Get();
 		return;
 	}
@@ -1100,6 +1306,7 @@ void Sign11() {
 }
 void Sign12() {
 	if (lexem->s == "!") {
+		push2(stek, lexem->s);
 		Get();
 		return;
 	}
@@ -1108,6 +1315,7 @@ void Sign12() {
 void Sign13() {
 	if (lexem->s == "++" ||
 		lexem->s == "--") {
+		push2(stek, lexem->s);
 		Get();
 		return;
 	}
@@ -1115,16 +1323,11 @@ void Sign13() {
 }
 void Sign14() {
 	if (lexem->s == "**") {
+		push2(stek, lexem->s);
 		Get();
 		return;
 	}
 	ERROR("**");
-}
-
-void Element() {
-	Expression();
-	Get();
-	return;
 }
 
 void GotoAndChildren() {
@@ -1138,6 +1341,9 @@ void Return() {
 	if (lexem->s == "return") {
 		Get();
 		Expression();
+		if (stek != nullptr)
+		if (stek->next != nullptr)throw(3);
+		delete_stek(stek);
 		return;
 	}
 }
@@ -1189,6 +1395,7 @@ int main() {
 	string s;
 	int strings = 0;
 	states state = Start;
+	stek = nullptr;
 	for (;;) {
 		switch (state) {
 		case Start:
@@ -1362,7 +1569,7 @@ sintax:fout.close();
 			break;
 		}
 		case 3: {
-			cout << "Error in string " << strings << endl << "type error";
+			cout << "TYPE ERROR";
 			break;
 		}
 		}	
