@@ -80,6 +80,45 @@ void DeleteUntil(Tid *&L, Tid *&L1) {
 
 //END OF TID
 
+//STEK
+struct STEK{
+	Type type;
+	string op = "";
+	STEK *next;
+};
+static STEK *stek = new STEK;
+void push1(STEK *&stek, Type type) {
+	STEK *p = new STEK;
+	p->next = stek;
+	stek = p;
+	p->type = type;
+}
+void push2(STEK *&stek, string s) {
+	STEK *p = new STEK;
+	p->next = stek;
+	stek = p;
+	p->op = s;
+}
+void check_op(STEK *&stek) {
+
+	throw (3);
+}
+void check_not(STEK *&stek) {
+	
+	throw (3);
+}
+void delete_elem(STEK *&stek) {
+	if (stek == nullptr)return;
+	STEK *p = stek;
+	stek = stek->next;
+	p->next = nullptr;
+	delete p;
+}
+void delete_stek(STEK *&stek) {
+	for (; stek != nullptr; delete_elem(stek));
+}
+//END OF STEK
+
 //LEXIC
 #include <iostream>
 #include <fstream>
@@ -690,6 +729,22 @@ void Priority15()
 		return;
 	}
 	if (lexem->id == 3) {
+		if (lexem->s[0] == '"') {
+			push1(stek, String);
+		}
+		else if (lexem->s == "true" || lexem->s == "false") {
+			push1(stek, Bool);
+		}
+		else {
+			for (int i = 0; i < lexem->s.length(); i++) {
+				if (lexem->s[i] == '.') {
+					push1(stek, Double);
+					Get();
+					return;
+				}
+			}
+			push1(stek, Int);
+		}
 		Get(); return;
 	}
 	if (lexem->id == 2) {
@@ -727,6 +782,7 @@ void Variable() {
 	if (lexem->s == "$") {
 		Get();
 		if (lexem->id == 2) {
+			push1(stek, CheckID(lexem->s, L));
 			Get();
 			return;
 		}
@@ -776,19 +832,23 @@ void Operators() {
 						Type type;
 						if (lexem->s == "int") {
 							type = Int;
+							push1(stek, Int);
 						} 
 						else if (lexem->s == "double") {
 							type = Double;
+							push1(stek, Double);
 						}
 						else if (lexem->s == "bool") {
 							type = Bool;
+							push1(stek, Bool);
 						}
 						else if (lexem->s == "string") {
 							type = String;
+							push1(stek, String);
 						}
-						else {
+						/*else {
 							type = Char;
-						}
+						}*/
 						do {
 							Get();
 							if (lexem->s != "$") ERROR("$");
@@ -797,7 +857,11 @@ void Operators() {
 							AddID(lexem->s, "", type, L);
 							Get();
 							if (lexem->s == "=") {
+								push2(stek, "=");
 								NEExpression();
+							}
+							else {
+								delete_elem(stek);
 							}
 						} while (lexem->s == ",");
 						if (lexem->s != ";") ERROR(";");
@@ -854,19 +918,23 @@ void Operator() {
 		Type type;
 		if (lexem->s == "int") {
 			type = Int;
+			push1(stek, Int);
 		}
 		else if (lexem->s == "double") {
 			type = Double;
+			push1(stek, Double);
 		}
 		else if (lexem->s == "bool") {
 			type = Bool;
+			push1(stek, Bool);
 		}
 		else if (lexem->s == "string") {
 			type = String;
+			push1(stek, String);
 		}
-		else {
-			type = Char;
-		}
+		/*else {
+		type = Char;
+		}*/
 		do {
 			Get();
 			if (lexem->s != "$") ERROR("$");
@@ -875,7 +943,11 @@ void Operator() {
 			AddID(lexem->s, "", type, L);
 			Get();
 			if (lexem->s == "=") {
-				Expression();
+				push2(stek, "=");
+				NEExpression();
+			}
+			else {
+				delete_elem(stek);
 			}
 		} while (lexem->s == ",");
 		if (lexem->s != ";") ERROR(";");
@@ -920,13 +992,10 @@ void NEExpression()
 void Assignable()
 {
 	Variable();
-	while (lexem->s == "$") {
-		Variable();
-	}
-	if (lexem->s == "[") {
+	/*if (lexem->s == "[") {
 		NEExpression();
 		if (lexem->s != "]") ERROR("]");
-	}
+	}*/
 }
 void Sign1() {
 	if (lexem->s == "=" ||
@@ -1091,6 +1160,28 @@ void OutTID() {
 	}
 	fout.close();
 }
+/*void out_stek() {
+	ofstream fout("D:\\IT_files\\Compilator\\Files\\TID.txt");
+	for (STEK *p = stek; p != nullptr; p = p->next) {
+		switch (p->type)
+		{
+		case Int:
+			fout << "int";
+			break;
+		case Double:
+			fout << "double";
+			break;
+		case Bool:
+			fout << "bool";
+			break;
+		case String:
+			fout << "string";
+			break;
+		}
+		fout<< "\n";
+	}
+	fout.close();
+}*/
 int main() {
 	ifstream fin("D:\\IT_files\\Compilator\\Files\\Program.txt");
 	ofstream fout("D:\\IT_files\\Compilator\\Files\\Code.txt");
@@ -1251,7 +1342,8 @@ sintax:fout.close();
 	}
 	catch (string s) {
 		cout << "Error in string " << strings << "\nExpect: " << s << "\nGet: " << lexem->s << "\n";
-		OutTID();
+		//OutTID();
+		delete_stek(stek);
 		DeleteAll(L);
 		delete lexem;
 		Code.close();
@@ -1259,21 +1351,32 @@ sintax:fout.close();
 		return 0;
 	}
 	catch (int x) {
-		if (x == 1) {
+		switch (x)
+		{
+		case 1: {
 			cout << "Error in string " << strings << endl << lexem->s << " is initialized saveral times";
+			break;
 		}
-		if (x == 2) {
+		case 2: {
 			cout << "Error in string " << strings << endl << lexem->s << " isn't initialized";
+			break;
 		}
-		OutTID();
+		case 3: {
+			cout << "Error in string " << strings << endl << "type error";
+			break;
+		}
+		}	
+		//OutTID();
 		delete lexem;
+		delete_stek(stek);
 		DeleteAll(L);
 		Code.close();
 		system("pause");
 		return 0;
 	}
 	delete lexem;
-	OutTID();
+	//OutTID();
+	delete_stek(stek);
 	DeleteAll(L);
 	Code.close();
 	system("pause");
