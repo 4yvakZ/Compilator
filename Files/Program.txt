@@ -1,8 +1,12 @@
 <?php
 int $a, $b, $c = $b;
-for(;$a=3;){
-$a=5;
+$a=$b=5;
+for(;a==b;){
+int $c;
+if($a!=$c){
+int $i
+while()
 }
-
+}
 $b=$a++;
 >

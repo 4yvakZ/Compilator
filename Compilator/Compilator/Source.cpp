@@ -14,7 +14,6 @@ struct Lex {
 };
 static Lex *lexem = new Lex;
 static int strings = 1;
-
 //TID
 enum Type {
 	Int,
@@ -80,8 +79,37 @@ void DeleteUntil(Tid *&L, Tid *&L1) {
 }
 
 //END OF TID
+//FUNCTIN TID
+/*struct FunctionTid {
+	Type type;
+	Tid *L;
+	FunctionTid *next;
+};
+void AddIDF(string name, Type type, FunctionTid *&LF) {
+	FunctionTid *p;
+	for (p = LF; p != nullptr && p != LF1; p = p->next) {
+		if (p->name == name) {
+			throw(1);
+		}
+	}
+	p = new Tid;
+	p->type = type;
+	p->name = name;
+	p->value = value;
+	p->next = L;
+	L = p;
+}
 
-//STEK
+Type CheckID(string name, Tid *&L) {
+	for (Tid *p = L; p != nullptr; p = p->next) {
+		if (p->name == name) {
+			return p->type;
+		}
+	}
+	throw(2);
+}
+//END OF FUNCTION TID
+*///STEK
 struct STEK{
 	Type type;
 	string op = "";
