@@ -79,37 +79,8 @@ void DeleteUntil(Tid *&L, Tid *&L1) {
 }
 
 //END OF TID
-//FUNCTIN TID
-/*struct FunctionTid {
-	Type type;
-	Tid *L;
-	FunctionTid *next;
-};
-void AddIDF(string name, Type type, FunctionTid *&LF) {
-	FunctionTid *p;
-	for (p = LF; p != nullptr && p != LF1; p = p->next) {
-		if (p->name == name) {
-			throw(1);
-		}
-	}
-	p = new Tid;
-	p->type = type;
-	p->name = name;
-	p->value = value;
-	p->next = L;
-	L = p;
-}
 
-Type CheckID(string name, Tid *&L) {
-	for (Tid *p = L; p != nullptr; p = p->next) {
-		if (p->name == name) {
-			return p->type;
-		}
-	}
-	throw(2);
-}
-//END OF FUNCTION TID
-*///STEK
+//STEK
 struct STEK{
 	Type type;
 	string op = "";
@@ -400,12 +371,52 @@ void Return();
 void Goto();
 
 void ListOfArguments() {
+	if (lexem->s == "int" ||
+		lexem->s == "double" ||
+		lexem->s == "bool" ||
+		//lexem->s == "char"||
+		lexem->s == "string") {
+		Type type;
+		if (lexem->s == "int") {
+			type = Int;
+		}
+		else if (lexem->s == "double") {
+			type = Double;
+		}
+		else if (lexem->s == "bool") {
+			type = Bool;
+		}
+		else if (lexem->s == "string") {
+			type = String;
+		}
+		Get();
+	}
 	if (lexem->s != "$") ERROR("$");
 	Get();
 	if (lexem->id != 2) ERROR("Name");
 	Get();
 	while (lexem->s == ",") {
 		Get();
+		if (lexem->s == "int" ||
+			lexem->s == "double" ||
+			lexem->s == "bool" ||
+			//lexem->s == "char"||
+			lexem->s == "string") {
+			Type type;
+			if (lexem->s == "int") {
+				type = Int;
+			}
+			else if (lexem->s == "double") {
+				type = Double;
+			}
+			else if (lexem->s == "bool") {
+				type = Bool;
+			}
+			else if (lexem->s == "string") {
+				type = String;
+			}
+			Get();
+		}
 		if (lexem->s != "$") ERROR("$");
 		Get();
 		if (lexem->id != 2) ERROR("Name");
@@ -771,7 +782,10 @@ void Get() {
 			lexem->s += x;
 			Code.get();
 		}
-		if (lexem->id == 7)strings++;
+		if (lexem->id == 7) {
+			strings++;
+			//cout << strings << endl;
+		}
 	} while (lexem->id == 7);
 	return;
 }
@@ -1163,12 +1177,7 @@ void Operator() {
 			AddID(lexem->s, "", type, L);
 			Get();
 			if (lexem->s == "=") {
-				push2(stek, "=");
 				NEExpression();
-				check_op(stek);
-				if (stek != nullptr)
-				if (stek->next != nullptr)throw(3);
-				delete_stek(stek);
 			}
 		} while (lexem->s == ",");
 		delete_elem(stek);
@@ -1394,34 +1403,12 @@ void OutTID() {
 	}
 	fout.close();
 }
-/*void out_stek() {
-	ofstream fout("D:\\IT_files\\Compilator\\Files\\TID.txt");
-	for (STEK *p = stek; p != nullptr; p = p->next) {
-		switch (p->type)
-		{
-		case Int:
-			fout << "int";
-			break;
-		case Double:
-			fout << "double";
-			break;
-		case Bool:
-			fout << "bool";
-			break;
-		case String:
-			fout << "string";
-			break;
-		}
-		fout<< "\n";
-	}
-	fout.close();
-}*/
 int main() {
 	ifstream fin("D:\\IT_files\\Compilator\\Files\\Program.txt");
 	ofstream fout("D:\\IT_files\\Compilator\\Files\\Code.txt");
 	char x, a;
 	string s;
-	int strings = 0;
+	int str = 0;
 	states state = Start;
 	stek = nullptr;
 	for (;;) {
@@ -1429,8 +1416,8 @@ int main() {
 		case Start:
 			x = fin.get();
 			if (x == EOF) {
-				strings++;
-				fout << "7 " << strings << "\n";
+				str++;
+				fout << "7 " << str << "\n";
 				goto sintax;
 			}
 			else if (x == ' ' || x == '	') {
@@ -1438,8 +1425,8 @@ int main() {
 			}
 			else if (x == '\n') {
 				state = Start;
-				strings++;
-				fout << "7 " << strings << "\n";
+				str++;
+				fout << "7 " << str << "\n";
 			}
 			else if (x == '/') {
 				state = G;
@@ -1490,7 +1477,7 @@ int main() {
 			fout << "\n";
 			state = Start;
 			if (isalpha(x)) {
-				cout << "Lexical ERROR in string " << strings + 1 << "\n";
+				cout << "Lexical ERROR in string " << str + 1 << "\n";
 				system("pause");
 				return 0;
 			}
@@ -1542,14 +1529,14 @@ int main() {
 		case H:
 			for (x = fin.get(); x != '\n' && x != EOF; x = fin.get());
 			state = Start;
-			strings++;
-			fout << "7 " << strings << "\n";
+			str++;
+			fout << "7 " << str << "\n";
 			break;
 		case I:
 			for (x = fin.get(); ;) {
 				if (x == '\n') {
-					strings++;
-					fout << "7 " << strings << "\n";
+					str++;
+					fout << "7 " << str << "\n";
 				}
 				if (x == '*') {
 					x = fin.get();
@@ -1597,7 +1584,7 @@ sintax:fout.close();
 			break;
 		}
 		case 3: {
-			cout << "TYPE ERROR";
+			cout << "Error in string " << strings << endl << "TYPE ERROR";
 			break;
 		}
 		}	
