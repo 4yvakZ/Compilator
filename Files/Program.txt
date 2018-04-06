@@ -1,21 +1,9 @@
 <?php
-int $a, $b, $c = $b;
-$a=$b=5;
-function Fubfgs(int $a){
-$a+=$b;
+bool $a;
+if(true){
+if(true){int $k = 0;}else {$g = 1;}
 }
-/*for(;$a==$b;){
-int $c;
-if($a!=$c){
-int $i;
-while($i==$c){
-string $s="fafa";
-$i= $a+$b>$c;
-;
-}
-}else{
-;
-}
-}
-$b=$a++;*/
+else {
+$a = true;}
+int $g = 3;
 >
