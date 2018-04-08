@@ -1,9 +1,11 @@
 <?php
-bool $a;
-if(true){
-if(true){int $k = 0;}else {$g = 1;}
+bool $a = false;
+goto Pos;
+int $g = 10;
+while(!$a){
+$g++;
+if($g == 15) break; else; endif
 }
-else {
-$a = true;}
-int $g = 3;
+Pos :
+$a = true;
 >

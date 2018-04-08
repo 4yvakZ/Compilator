@@ -4,9 +4,7 @@
 #include <sstream>
 #include <cctype>
 #include <stdio.h>
-
 using namespace std;
-
 
 static ifstream Code("D:\\IT_files\\Compilator\\Files\\Code.txt");
 static ofstream POLIZ("D:\\IT_files\\Compilator\\Files\\POLIZ.txt");
@@ -17,6 +15,7 @@ struct Lex {
 };
 static Lex *lexem = new Lex;
 static int strings = 1;
+int LineNum;
 
 //TID
 enum Type {
@@ -32,10 +31,10 @@ struct Tid {
 	string name;
 	string value = "nullptr";
 };
-
 static Tid *L = new Tid;
 static Tid *L1 = nullptr;
-
+static Tid *SupportTid = new Tid;
+static Tid *CurrentSupport = SupportTid;
 void AddID(string name, string value, Type type, Tid *&L) {
 	Tid *p;
 	for (p = L; p != nullptr && p != L1; p = p->next) {
@@ -49,6 +48,14 @@ void AddID(string name, string value, Type type, Tid *&L) {
 	p->value = value;
 	p->next = L;
 	L = p;
+	p = CurrentSupport;
+	p = new Tid;
+	p->type = type;
+	p->name = name;
+	p->value = value;
+	p->next = CurrentSupport;
+	CurrentSupport = p;
+	return;
 }
 Type CheckID(string name, Tid *&L) {
 	for (Tid *p = L; p != nullptr; p = p->next) {
@@ -77,31 +84,8 @@ void DeleteUntil(Tid *&L, Tid *&L1) {
 	L = L1;
 	DeleteAll(q);
 }
-Tid *SupportTid = new Tid;
-Tid *CurrentSupport = SupportTid;
-Tid *SupportTidElse;
-void CopyElseUntil(Tid*L, Tid*L1, Tid*&CurrentTid) {
-	if (L != L1) {
-		CopyElseUntil(L->next, L1, CurrentTid);
-	}
-	SupportTidElse = new Tid;
-	SupportTidElse->name = L->name;
-	SupportTidElse->type = L->type;
-	SupportTidElse->value = L->value;
-	SupportTidElse->next = CurrentTid;
-	CurrentTid = SupportTidElse;
-}
+/*
 void CopyUntil(Tid *L, Tid *L1) {
-	/*if (L != L1) {
-		CopyUntil(L->next, L1, CurrentTid);
-	}
-	SupportTid = new Tid;
-	SupportTid->name = L->name;
-	SupportTid->type = L->type;
-	SupportTid->value = L->value;
-	SupportTid->next = CurrentTid;
-	CurrentTid = SupportTid;
-	*/
 	Tid *p = L;
 	while (p != L1) {
 		CurrentSupport->name = p->name;
@@ -113,13 +97,13 @@ void CopyUntil(Tid *L, Tid *L1) {
 		p = p->next;
 	}
 	CurrentSupport->next = nullptr;
-}
+}*/
 
 //POLIZ part
-bool UseSupportTid = false;
-bool UseSupportTidElse = false;
+bool Break = false;
 bool ShiftPOLIZ = false;
 bool ShiftSwitch = false;
+string GoTo = "NAN";
 int ShiftUntilPOLIZ;
 void ChangeVar(string VarName, string value) {
 	for (Tid *p = L; p != nullptr; p = p->next)
@@ -127,12 +111,7 @@ void ChangeVar(string VarName, string value) {
 			p->value = value;
 			return;
 		}
-	for (Tid *p = SupportTid; p != nullptr && UseSupportTid; p = p->next)
-		if (p->name == VarName) {
-			p->value = value;
-			return;
-		}
-	for (Tid *p = SupportTidElse; p != nullptr && UseSupportTidElse; p = p->next)
+	for (Tid *p = SupportTid; p != nullptr; p = p->next)
 		if (p->name == VarName) {
 			p->value = value;
 			return;
@@ -143,10 +122,8 @@ void ChangeVar(string VarName, string value) {
 string GetValue(string VarName) {
 	for (Tid *p = L; p != nullptr; p = p->next)
 		if (p->name == VarName) return p->value;
-	for (Tid *p = SupportTid; p != nullptr && UseSupportTid; p = p->next)
+	for (Tid *p = SupportTid; p != nullptr; p = p->next)
 		if (p->name == VarName) return p->value;
-	for (Tid *p = SupportTidElse; p != nullptr && UseSupportTidElse; p = p->next)
-		if (p->name == VarName)	return p->value;
 	return "GetValue crashs";
 }
 Type GetType(string VarName) {
@@ -163,6 +140,7 @@ struct RESULT {
 	string s;
 	int ID;
 	Type type;
+	int LineNum;
 	RESULT *next = nullptr;
 };
 
@@ -170,6 +148,49 @@ static RESULT *MainPOLIZ = new RESULT;
 static RESULT *CurrentPOLIZ = MainPOLIZ;
 static RESULT *LResult = new RESULT;
 
+Type TypeCheck(Type type2, Type type1, string sign) {
+	if (sign == "=") {
+		if (type1 == type2) return type1;
+		if (type1 == Double || type2 == Double)
+			if (type1 != Int && type2 != Int) throw(3);
+		throw (3);
+		return Bool;
+	}
+	if (sign == "+=" || sign == "-=" || sign == "*=" || sign == "/=" || sign == "+" || sign == "-" || sign == "*" || sign == "/") {
+		if (type1 != Int || type1 != Double) throw(3);
+		if (type2 != Int || type2 != Double) throw(3);
+		if (type1 == Double || type2 == Double) return Double;
+		return Int;
+	}
+	if (sign == "**=" || sign == "**") {
+		if (type1 != Int) throw(3);
+		if (type2 != Int && type2 != Double) throw(3);
+		if (type2 == Double) return Double;
+		return Int;
+	}
+	if (sign == ".=" || sign == ".") {
+		if (type1 != String && type2 != String) throw(3);
+		return String;
+	}
+	if (sign == "%=" || sign == "%" || sign == "&=" || sign == "|=" || sign == "^=" || sign == "<<=" || sign == ">>=" || sign == "|" || sign == "^" || sign == "&" || sign == "<<" || sign == ">>") {
+		if (type1 != Int || type2 != Int) throw(3);
+		return Int;
+	}
+	if (sign == "||" || sign == "&&" || sign == "==" || sign == "!=" || sign == "===" || sign == "!==" || sign =="<=>" || sign == "!") {
+		return Bool;
+	}//expended true
+	if (sign == "<" || sign == "<=" || sign == ">" || sign == ">=") {
+		if (type2 != Int && type2 != Double) throw(3);
+		if (type1 != Int && type1 != Double) throw(3);
+		return Bool;
+	}
+	if (sign == "++" || sign == "--" || sign == "++Prev" || sign == "--Prev") {
+		if (type1 != Int && type1 != Double) throw(3);
+		return type1;
+	}
+	cout << "WTF? Can't determine op.sign: " << sign << endl;
+	return Bool;
+}
 void DelRESULT() {
 	RESULT *p = LResult;
 	LResult = LResult->next;
@@ -200,6 +221,7 @@ double GetNum(string a) {
 }
 void RunOperation() {
 	if (LResult->s == "=") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
 		RESULT *Operand2 = LResult->next;
@@ -209,13 +231,14 @@ void RunOperation() {
 		Shift(Operand2->s);
 		ChangeVar(Operand2->s, Operand1->s);
 		LResult->s = Operand1->s;
-		LResult->type = Operand1->type;
+		LResult->type = TypeCheck(Operand2->type, Operand1->type, "=");
 		cout << Operand2->s << " = " << Operand1->s << endl;
 		delete Operand1;
 		delete Operand2;
 		return;
 	}
 	if (LResult->s == "+=") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
 		RESULT *Operand2 = LResult->next;
@@ -230,13 +253,14 @@ void RunOperation() {
 		ostr << sum;
 		ChangeVar(Operand2Name, ostr.str());
 		LResult->s = ostr.str();
-		LResult->type = Operand2->type;
+		LResult->type = TypeCheck(Operand2->type, Operand1->type, "+=");
 		cout << Operand2Name << " = " << ostr.str() << endl;
 		delete Operand1;
 		delete Operand2;
 		return;
 	}
 	if (LResult->s == "-=") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
 		RESULT *Operand2 = LResult->next;
@@ -251,12 +275,13 @@ void RunOperation() {
 		ChangeVar(Operand2Name, strsum.str());
 		cout << Operand2Name << " = " << strsum.str() << endl;
 		LResult->s = strsum.str();
-		LResult->type = Operand2->type;
+		LResult->type = TypeCheck(Operand2->type, Operand1->type, "-=");
 		delete Operand1;
 		delete Operand2;
 		return;
 	}
 	if (LResult->s == "*=") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
 		RESULT *Operand2 = LResult->next;
@@ -271,12 +296,13 @@ void RunOperation() {
 		ChangeVar(Operand2Name, strsum.str());
 		cout << Operand2Name << " = " << strsum.str() << endl;
 		LResult->s = strsum.str();
-		LResult->type = Operand2->type;
+		LResult->type = TypeCheck(Operand2->type, Operand1->type, "*=");
 		delete Operand1;
 		delete Operand2;
 		return;
 	}
 	if (LResult->s == "**=") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
 		RESULT *Operand2 = LResult->next;
@@ -294,12 +320,13 @@ void RunOperation() {
 		ChangeVar(Operand2Name, strsum.str());
 		cout << Operand2Name << " = " << strsum.str() << endl;
 		LResult->s = strsum.str();
-		LResult->type = Operand2->type;
+		LResult->type = TypeCheck(Operand2->type, Operand1->type, "**=");
 		delete Operand1;
 		delete Operand2;
 		return;
 	}
-	if (LResult->s == "/=") {                                 //Need to add conditional by zero
+	if (LResult->s == "/=") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
 		RESULT *Operand2 = LResult->next;
@@ -308,18 +335,20 @@ void RunOperation() {
 		if (Operand1->s[0] == '$') { Shift(Operand1->s), Operand1->s = GetValue(Operand1->s); }
 		Shift(Operand2->s);
 		string Operand2Name = Operand2->s;
+		if (GetNum(Operand1->s) == 0) throw(0);
 		double sum = GetNum(GetValue(Operand2->s)) / GetNum(Operand1->s);
 		ostringstream strsum;
 		strsum << sum;
 		ChangeVar(Operand2Name, strsum.str());
 		cout << Operand2Name << " = " << strsum.str() << endl;
 		LResult->s = strsum.str();
-		LResult->type = Operand2->type;
+		LResult->type = TypeCheck(Operand2->type, Operand1->type, "/=");
 		delete Operand1;
 		delete Operand2;
 		return;
 	}
 	if (LResult->s == ".="){
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
 		RESULT *Operand2 = LResult->next;
@@ -333,12 +362,13 @@ void RunOperation() {
 		ChangeVar(Operand2Name, sum);
 		cout << Operand2Name << " = " << sum << endl;
 		LResult->s = sum;
-		LResult->type = Operand2->type;
+		LResult->type = TypeCheck(Operand2->type, Operand1->type, ".=");
 		delete Operand1;
 		delete Operand2;
 		return;
 	}
 	if (LResult->s == "%=") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
 		RESULT *Operand2 = LResult->next;
@@ -347,18 +377,20 @@ void RunOperation() {
 		if (Operand1->s[0] == '$') { Shift(Operand1->s), Operand1->s = GetValue(Operand1->s); }
 		Shift(Operand2->s);
 		string Operand2Name = Operand2->s;
+		if (GetNum(Operand1->s) == 0) throw(0);
 		double sum = int(GetNum(GetValue(Operand2->s))) %  int(GetNum(Operand1->s));
 		ostringstream strsum;
 		strsum << sum;
 		ChangeVar(Operand2Name, strsum.str());
 		cout << Operand2Name << " = " << strsum.str() << endl;
 		LResult->s = strsum.str();
-		LResult->type = Operand2->type;
+		LResult->type = TypeCheck(Operand2->type, Operand1->type, "%=");
 		delete Operand1;
 		delete Operand2;
 		return;
 	}
 	if (LResult->s == "&="){
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
 		RESULT *Operand2 = LResult->next;
@@ -373,12 +405,13 @@ void RunOperation() {
 		ChangeVar(Operand2Name, strsum.str());
 		cout << Operand2Name << " = " << strsum.str() << endl;
 		LResult->s = strsum.str();
-		LResult->type = Operand2->type;
+		LResult->type = TypeCheck(Operand2->type, Operand1->type, "&=");
 		delete Operand1;
 		delete Operand2;
 		return;
 	}
 	if (LResult->s == "|=") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
 		RESULT *Operand2 = LResult->next;
@@ -393,12 +426,13 @@ void RunOperation() {
 		ChangeVar(Operand2Name, strsum.str());
 		cout << Operand2Name << " = " << strsum.str() << endl;
 		LResult->s = strsum.str();
-		LResult->type = Operand2->type;
+		LResult->type = TypeCheck(Operand2->type, Operand1->type, "|=");
 		delete Operand1;
 		delete Operand2;
 		return;
 	}
 	if (LResult->s == "^=") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
 		RESULT *Operand2 = LResult->next;
@@ -413,12 +447,13 @@ void RunOperation() {
 		ChangeVar(Operand2Name, strsum.str());
 		cout << Operand2Name << " = " << strsum.str() << endl;
 		LResult->s = strsum.str();
-		LResult->type = Operand2->type;
+		LResult->type = TypeCheck(Operand2->type, Operand1->type, "^=");
 		delete Operand1;
 		delete Operand2;
 		return;
 	}
 	if (LResult->s == "<<=") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
 		RESULT *Operand2 = LResult->next;
@@ -433,12 +468,13 @@ void RunOperation() {
 		ChangeVar(Operand2Name, strsum.str());
 		cout << Operand2Name << " = " << strsum.str() << endl;
 		LResult->s = strsum.str();
-		LResult->type = Operand2->type;
+		LResult->type = TypeCheck(Operand2->type, Operand1->type, "<<=");
 		delete Operand1;
 		delete Operand2;
 		return;
 	}
 	if (LResult->s == ">>=") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
 		RESULT *Operand2 = LResult->next;
@@ -453,12 +489,13 @@ void RunOperation() {
 		ChangeVar(Operand2Name, strsum.str());
 		cout << Operand2Name << " = " << strsum.str() << endl;
 		LResult->s = strsum.str();
-		LResult->type = Operand2->type;
+		LResult->type = TypeCheck(Operand2->type, Operand1->type, ">>=");
 		delete Operand1;
 		delete Operand2;
 		return;
 	}
 	if (LResult->s == "||") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
 		RESULT *Operand2 = LResult->next;
@@ -466,14 +503,15 @@ void RunOperation() {
 		LResult->next = Operand2->next;
 		if (Operand1->s[0] == '$') { Shift(Operand1->s); Operand1->s = GetValue(Operand1->s); }
 		if (Operand2->s[0] == '$') { Shift(Operand2->s); Operand2->s = GetValue(Operand2->s); }
-		LResult->type = Bool;
 		if (Operand1->s == "true" || Operand2->s == "true")	LResult->s = "true";
 		else LResult->s = "false";
+		LResult->type = TypeCheck(Operand2->type, Operand1->type, "||");
 		delete Operand1;
 		delete Operand2;
 		return;
 	}
 	if (LResult->s == "&&") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
 		RESULT *Operand2 = LResult->next;
@@ -481,14 +519,15 @@ void RunOperation() {
 		LResult->next = Operand2->next;
 		if (Operand1->s[0] == '$') { Shift(Operand1->s); Operand1->s = GetValue(Operand1->s); }
 		if (Operand2->s[0] == '$') { Shift(Operand2->s); Operand2->s = GetValue(Operand2->s); }
-		LResult->type = Bool;
 		if (Operand1->s == "true" && Operand2->s == "true")	LResult->s = "true";
 		else LResult->s = "false";
+		LResult->type = TypeCheck(Operand2->type, Operand1->type, "&&");
 		delete Operand1;
 		delete Operand2;
 		return;
 	}
 	if (LResult->s == "|") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
 		RESULT *Operand2 = LResult->next;
@@ -496,16 +535,17 @@ void RunOperation() {
 		LResult->next = Operand2->next;
 		if (Operand1->s[0] == '$') { Shift(Operand1->s); Operand1->s = GetValue(Operand1->s); }
 		if (Operand2->s[0] == '$') { Shift(Operand2->s); Operand2->s = GetValue(Operand2->s); }
-		LResult->type = Int;
 		int sum = int(GetNum(Operand1->s)) | int(GetNum(Operand2->s));
 		ostringstream sumstr;
 		sumstr << sum;
 		LResult->s = sumstr.str();
+		LResult->type = TypeCheck(Operand2->type, Operand1->type, "|");
 		delete Operand1;
 		delete Operand2;
 		return;
 	}
 	if (LResult->s == "^") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
 		RESULT *Operand2 = LResult->next;
@@ -513,16 +553,17 @@ void RunOperation() {
 		LResult->next = Operand2->next;
 		if (Operand1->s[0] == '$') { Shift(Operand1->s); Operand1->s = GetValue(Operand1->s); }
 		if (Operand2->s[0] == '$') { Shift(Operand2->s); Operand2->s = GetValue(Operand2->s); }
-		LResult->type = Int;
 		int sum = int(GetNum(Operand1->s)) ^ int(GetNum(Operand2->s));
 		ostringstream sumstr;
 		sumstr << sum;
 		LResult->s = sumstr.str();
+		LResult->type = TypeCheck(Operand2->type, Operand1->type, "^");
 		delete Operand1;
 		delete Operand2;
 		return;
 	}
 	if (LResult->s == "&") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
 		RESULT *Operand2 = LResult->next;
@@ -530,16 +571,17 @@ void RunOperation() {
 		LResult->next = Operand2->next;
 		if (Operand1->s[0] == '$') { Shift(Operand1->s); Operand1->s = GetValue(Operand1->s); }
 		if (Operand2->s[0] == '$') { Shift(Operand2->s); Operand2->s = GetValue(Operand2->s); }
-		LResult->type = Int;
 		int sum = int(GetNum(Operand1->s)) & int(GetNum(Operand2->s));
 		ostringstream sumstr;
 		sumstr << sum;
 		LResult->s = sumstr.str();
+		LResult->type = TypeCheck(Operand2->type, Operand1->type, "&");
 		delete Operand1;
 		delete Operand2;
 		return;
 	}
 	if (LResult->s == "==") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
 		RESULT *Operand2 = LResult->next;
@@ -547,21 +589,15 @@ void RunOperation() {
 		LResult->next = Operand2->next;
 		if (Operand1->s[0] == '$') { Shift(Operand1->s); Operand1->s = GetValue(Operand1->s); }
 		if (Operand2->s[0] == '$') { Shift(Operand2->s); Operand2->s = GetValue(Operand2->s); }
-		LResult->type = Bool;
-		if (Operand1->type == Int || Operand2->type == Int) {
-			ostringstream Op1, Op2;
-			Op1 << GetNum(Operand1->s);
-			Op2 << GetNum(Operand2->s);
-			Operand1->s = Op1.str();
-			Operand2->s = Op2.str();
-		}
 		if (Operand1->s == Operand2->s) LResult->s = "true";
 		else LResult->s = "false";
+		LResult->type = TypeCheck(Operand2->type, Operand1->type, "==");
 		delete Operand1;
 		delete Operand2;
 		return;
 	}
 	if (LResult->s == "!=") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
 		RESULT *Operand2 = LResult->next;
@@ -569,21 +605,15 @@ void RunOperation() {
 		LResult->next = Operand2->next;
 		if (Operand1->s[0] == '$') { Shift(Operand1->s); Operand1->s = GetValue(Operand1->s); }
 		if (Operand2->s[0] == '$') { Shift(Operand2->s); Operand2->s = GetValue(Operand2->s); }
-		LResult->type = Bool;
-		if (Operand1->type == Int || Operand2->type == Int) {
-			ostringstream Op1, Op2;
-			Op1 << GetNum(Operand1->s);
-			Op2 << GetNum(Operand2->s);
-			Operand1->s = Op1.str();
-			Operand2->s = Op2.str();
-		}
 		if (Operand1->s != Operand2->s) LResult->s = "true";
 		else LResult->s = "false";
+		LResult->type = TypeCheck(Operand2->type, Operand1->type, "!=");
 		delete Operand1;
 		delete Operand2;
 		return;
 	}
 	if (LResult->s == "===") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
 		RESULT *Operand2 = LResult->next;
@@ -591,14 +621,15 @@ void RunOperation() {
 		LResult->next = Operand2->next;
 		if (Operand1->s[0] == '$') { Shift(Operand1->s); Operand1->s = GetValue(Operand1->s); }
 		if (Operand2->s[0] == '$') { Shift(Operand2->s); Operand2->s = GetValue(Operand2->s); }
-		LResult->type = Bool;
 		if (Operand1->s == Operand2->s && Operand1->type == Operand2->type) LResult->s = "true";
 		else LResult->s = "false";
+		LResult->type = TypeCheck(Operand2->type, Operand1->type, "===");
 		delete Operand1;
 		delete Operand2;
 		return;
 	}
 	if (LResult->s == "!==") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
 		RESULT *Operand2 = LResult->next;
@@ -606,14 +637,15 @@ void RunOperation() {
 		LResult->next = Operand2->next;
 		if (Operand1->s[0] == '$') { Shift(Operand1->s); Operand1->s = GetValue(Operand1->s); }
 		if (Operand2->s[0] == '$') { Shift(Operand2->s); Operand2->s = GetValue(Operand2->s); }
-		LResult->type = Bool;
 		if (Operand1->s != Operand2->s && Operand1->type == Operand2->type) LResult->s = "true";
 		else LResult->s = "false";
+		LResult->type = TypeCheck(Operand2->type, Operand1->type, "!==");
 		delete Operand1;
 		delete Operand2;
 		return;
 	}
 	if (LResult->s == "<=>") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
 		RESULT *Operand2 = LResult->next;
@@ -621,14 +653,15 @@ void RunOperation() {
 		LResult->next = Operand2->next;
 		if (Operand1->s[0] == '$') { Shift(Operand1->s); Operand1->s = GetValue(Operand1->s); }
 		if (Operand2->s[0] == '$') { Shift(Operand2->s); Operand2->s = GetValue(Operand2->s); }
-		LResult->type = Bool;
 		if (Operand1->s != Operand2->s && Operand1->type == Operand2->type) LResult->s = "true";
 		else LResult->s = "false";
+		LResult->type = TypeCheck(Operand2->type, Operand1->type, "<=>");
 		delete Operand1;
 		delete Operand2;
 		return;
 	}
 	if (LResult->s == "<") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
 		RESULT *Operand2 = LResult->next;
@@ -636,14 +669,15 @@ void RunOperation() {
 		LResult->next = Operand2->next;
 		if (Operand1->s[0] == '$') { Shift(Operand1->s); Operand1->s = GetValue(Operand1->s); }
 		if (Operand2->s[0] == '$') { Shift(Operand2->s); Operand2->s = GetValue(Operand2->s); }
-		LResult->type = Bool;
 		if (GetNum(Operand1->s) < GetNum(Operand2->s)) LResult->s = "true";
 		else LResult->s = "false";
+		LResult->type = TypeCheck(Operand2->type, Operand1->type, "<");
 		delete Operand1;
 		delete Operand2;
 		return;
 	}
 	if (LResult->s == ">") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
 		RESULT *Operand2 = LResult->next;
@@ -651,14 +685,15 @@ void RunOperation() {
 		LResult->next = Operand2->next;
 		if (Operand1->s[0] == '$') { Shift(Operand1->s); Operand1->s = GetValue(Operand1->s); }
 		if (Operand2->s[0] == '$') { Shift(Operand2->s); Operand2->s = GetValue(Operand2->s); }
-		LResult->type = Bool;
 		if (GetNum(Operand1->s) > GetNum(Operand2->s)) LResult->s = "true";
 		else LResult->s = "false";
+		LResult->type = TypeCheck(Operand2->type, Operand1->type, ">");
 		delete Operand1;
 		delete Operand2;
 		return;
 	}
 	if (LResult->s == "<=") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
 		RESULT *Operand2 = LResult->next;
@@ -666,14 +701,15 @@ void RunOperation() {
 		LResult->next = Operand2->next;
 		if (Operand1->s[0] == '$') { Shift(Operand1->s); Operand1->s = GetValue(Operand1->s); }
 		if (Operand2->s[0] == '$') { Shift(Operand2->s); Operand2->s = GetValue(Operand2->s); }
-		LResult->type = Bool;
 		if (GetNum(Operand1->s) <= GetNum(Operand2->s)) LResult->s = "true";
 		else LResult->s = "false";
+		LResult->type = TypeCheck(Operand2->type, Operand1->type, "<=");
 		delete Operand1;
 		delete Operand2;
 		return;
 	}
 	if (LResult->s == ">=") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
 		RESULT *Operand2 = LResult->next;
@@ -681,14 +717,15 @@ void RunOperation() {
 		LResult->next = Operand2->next;
 		if (Operand1->s[0] == '$') { Shift(Operand1->s); Operand1->s = GetValue(Operand1->s); }
 		if (Operand2->s[0] == '$') { Shift(Operand2->s); Operand2->s = GetValue(Operand2->s); }
-		LResult->type = Bool;
 		if (GetNum(Operand1->s) >= GetNum(Operand2->s)) LResult->s = "true";
 		else LResult->s = "false";
+		LResult->type = TypeCheck(Operand2->type, Operand1->type, ">=");
 		delete Operand1;
 		delete Operand2;
 		return;
 	}
 	if (LResult->s == "<<") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
 		RESULT *Operand2 = LResult->next;
@@ -696,16 +733,17 @@ void RunOperation() {
 		LResult->next = Operand2->next;
 		if (Operand1->s[0] == '$') { Shift(Operand1->s); Operand1->s = GetValue(Operand1->s); }
 		if (Operand2->s[0] == '$') { Shift(Operand2->s); Operand2->s = GetValue(Operand2->s); }
-		LResult->type = Int;
 		int sum = int(GetNum(Operand1->s)) << int(GetNum(Operand2->s));
 		ostringstream sumstr;
 		sumstr << sum;
 		LResult->s = sumstr.str();
+		LResult->type = TypeCheck(Operand2->type, Operand1->type, "<<");
 		delete Operand1;
 		delete Operand2;
 		return;
 	}
 	if (LResult->s == ">>") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
 		RESULT *Operand2 = LResult->next;
@@ -713,54 +751,55 @@ void RunOperation() {
 		LResult->next = Operand2->next;
 		if (Operand1->s[0] == '$') { Shift(Operand1->s); Operand1->s = GetValue(Operand1->s); }
 		if (Operand2->s[0] == '$') { Shift(Operand2->s); Operand2->s = GetValue(Operand2->s); }
-		LResult->type = Int;
 		int sum = int(GetNum(Operand1->s)) >> int(GetNum(Operand2->s));
 		ostringstream sumstr;
 		sumstr << sum;
 		LResult->s = sumstr.str();
+		LResult->type = TypeCheck(Operand2->type, Operand1->type, ">>");
 		delete Operand1;
 		delete Operand2;
 		return;
 	}
 	if (LResult->s == "+") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
 		RESULT *Operand2 = LResult->next;
 		LResult = new RESULT;
 		LResult->next = Operand2->next;
-		if (Operand1->type == Double || Operand2->type == Double) LResult->type = Double;
-		else LResult->type = Int;
 		if (Operand1->s[0] == '$') { Shift(Operand1->s); Operand1->s = GetValue(Operand1->s); }
 		if (Operand2->s[0] == '$') { Shift(Operand2->s); Operand2->s = GetValue(Operand2->s); }
 		double sum = GetNum(Operand1->s) + GetNum(Operand2->s);
 		ostringstream ostr;
 		ostr << sum;
 		LResult->s = ostr.str();
+		LResult->type = TypeCheck(Operand2->type, Operand1->type, "+");
 		cout << Operand2->s << "+" << Operand1->s << "=" << ostr.str() << endl;
 		delete Operand1;
 		delete Operand2;
 		return;
 	}
 	if (LResult->s == "-") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
 		RESULT *Operand2 = LResult->next;
 		LResult = new RESULT;
 		LResult->next = Operand2->next;
-		if (Operand1->type == Double || Operand2->type == Double) LResult->type = Double;
-		else LResult->type = Int;
 		if (Operand1->s[0] == '$') { Shift(Operand1->s); Operand1->s = GetValue(Operand1->s); }
 		if (Operand2->s[0] == '$') { Shift(Operand2->s); Operand2->s = GetValue(Operand2->s); }
 		double sum = GetNum(Operand2->s) - GetNum(Operand1->s);
 		ostringstream ostr;
 		ostr << sum;
 		LResult->s = ostr.str();
+		LResult->type = TypeCheck(Operand2->type, Operand1->type, "-");
 		cout << Operand2->s << "-" << Operand1->s << "=" << ostr.str() << endl;
 		delete Operand1;
 		delete Operand2;
 		return;
 	}
 	if (LResult->s == ".") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
 		RESULT *Operand2 = LResult->next;
@@ -769,82 +808,86 @@ void RunOperation() {
 		if (Operand1->s[0] == '$') { Shift(Operand1->s); Operand1->s = GetValue(Operand1->s); }
 		if (Operand2->s[0] == '$') { Shift(Operand2->s); Operand2->s = GetValue(Operand2->s); }
 		LResult->s = Operand2->s.erase(Operand2->s.length()-1,1) + Operand1->s.erase(0,1);
-		LResult->type = String;
+		LResult->type = TypeCheck(Operand2->type, Operand1->type, ".");
 		cout << Operand2->s << "+" << Operand1->s << "=" << LResult->s << endl;
 		delete Operand1;
 		delete Operand2;
 		return;
 	}
 	if (LResult->s == "*") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
 		RESULT *Operand2 = LResult->next;
 		LResult = new RESULT;
 		LResult->next = Operand2->next;
-		if (Operand1->type == Double || Operand2->type == Double) LResult->type = Double;
-		else LResult->type = Int;
 		if (Operand1->s[0] == '$') { Shift(Operand1->s); Operand1->s = GetValue(Operand1->s); }
 		if (Operand2->s[0] == '$') { Shift(Operand2->s); Operand2->s = GetValue(Operand2->s); }
 		double sum = GetNum(Operand1->s) * GetNum(Operand2->s);
 		ostringstream ostr;
 		ostr << sum;
 		LResult->s = ostr.str();
+		LResult->type = TypeCheck(Operand2->type, Operand1->type, "*");
 		cout << Operand2->s << "*" << Operand1->s << "=" << ostr.str() << endl;
 		delete Operand1;
 		delete Operand2;
 		return;
 	}
-	if (LResult->s == "/") {//Need to add conditional by zero
+	if (LResult->s == "/") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
 		RESULT *Operand2 = LResult->next;
 		LResult = new RESULT;
 		LResult->next = Operand2->next;
-		if (Operand1->type == Double || Operand2->type == Double) LResult->type = Double;
-		else LResult->type = Int;
 		if (Operand1->s[0] == '$') { Shift(Operand1->s); Operand1->s = GetValue(Operand1->s); }
 		if (Operand2->s[0] == '$') { Shift(Operand2->s); Operand2->s = GetValue(Operand2->s); }
+		if (GetNum(Operand1->s) == 0) throw(0);
 		double sum = GetNum(Operand1->s) / GetNum(Operand2->s);
 		ostringstream ostr;
 		ostr << sum;
 		LResult->s = ostr.str();
+		LResult->type = TypeCheck(Operand2->type, Operand1->type, "/");
 		cout << Operand2->s << "/" << Operand1->s << "=" << ostr.str() << endl;
 		delete Operand1;
 		delete Operand2;
 		return;
 	}
 	if (LResult->s == "%") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
 		RESULT *Operand2 = LResult->next;
 		LResult = new RESULT;
 		LResult->next = Operand2->next;
-		if (Operand1->type == Double || Operand2->type == Double) LResult->type = Double;
-		else LResult->type = Int;
 		if (Operand1->s[0] == '$') { Shift(Operand1->s); Operand1->s = GetValue(Operand1->s); }
 		if (Operand2->s[0] == '$') { Shift(Operand2->s); Operand2->s = GetValue(Operand2->s); }
+		if (GetNum(Operand1->s) == 0) throw(0);
 		double sum = int(GetNum(Operand1->s)) % int(GetNum(Operand2->s));
 		ostringstream ostr;
 		ostr << sum;
 		LResult->s = ostr.str();
+		LResult->type = TypeCheck(Operand2->type, Operand1->type, "%");
 		cout << Operand2->s << "%" << Operand1->s << "=" << ostr.str() << endl;
 		delete Operand1;
 		delete Operand2;
 		return;
 	}
 	if (LResult->s == "!") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand = LResult;
 		LResult = new RESULT;
 		LResult->next = Operand->next;
 		if (Operand->s[0] == '$') { Shift(Operand->s); Operand->s = GetValue(Operand->s); }
-		LResult->type = Bool;
 		if (Operand->s != "false" && Operand->s != "0") LResult->s = "false";
 		else LResult->s = "true";
+		LResult->type = TypeCheck(Bool, Operand->type, "!");
 		delete Operand;
 		return;
 	}
 	if (LResult->s == "++") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand = LResult;
 		LResult = new RESULT;
@@ -857,12 +900,13 @@ void RunOperation() {
 		sumstr << sum;
 		ChangeVar(OperandName, sumstr.str());
 		LResult->s = Operand->s;
-		LResult->type = Operand->type;
+		LResult->type = TypeCheck(Bool, Operand->type, "++");
 		cout << OperandName << " = " << sumstr.str() << endl;
 		delete Operand;
 		return;
 	}
 	if (LResult->s == "--") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand = LResult;
 		LResult = new RESULT;
@@ -875,12 +919,13 @@ void RunOperation() {
 		sumstr << sum;
 		ChangeVar(OperandName, sumstr.str());
 		LResult->s = Operand->s;
-		LResult->type = Operand->type;
+		LResult->type = TypeCheck(Bool, Operand->type, "--");
 		cout << OperandName << " = " << sumstr.str() << endl;
 		delete Operand;
 		return;
 	}
 	if (LResult->s == "++Prev") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand = LResult;
 		LResult = new RESULT;
@@ -893,12 +938,13 @@ void RunOperation() {
 		sumstr << sum;
 		ChangeVar(OperandName, sumstr.str());
 		LResult->s = sumstr.str();
-		LResult->type = Operand->type;
+		LResult->type = TypeCheck(Bool, Operand->type, "++Prev");
 		cout << OperandName << " = " << LResult->s << endl;
 		delete Operand;
 		return;
 	}
 	if (LResult->s == "--Prev") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand = LResult;
 		LResult = new RESULT;
@@ -911,19 +957,18 @@ void RunOperation() {
 		sumstr << sum;
 		ChangeVar(OperandName, sumstr.str());
 		LResult->s = sumstr.str();
-		LResult->type = Operand->type;
+		LResult->type = TypeCheck(Bool, Operand->type, "--Prev");
 		cout << OperandName << " = " << LResult->s << endl;
 		delete Operand;
 		return;
 	}
 	if (LResult->s == "**") {
+		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
 		RESULT *Operand2 = LResult->next;
 		LResult = new RESULT;
 		LResult->next = Operand2->next;
-		if (Operand1->type == Double || Operand2->type == Double) LResult->type = Double;
-		else LResult->type = Int;
 		if (Operand1->s[0] == '$') { Shift(Operand1->s); Operand1->s = GetValue(Operand1->s); }
 		if (Operand2->s[0] == '$') { Shift(Operand2->s); Operand2->s = GetValue(Operand2->s); }
 		double sum = 1.0;
@@ -931,6 +976,7 @@ void RunOperation() {
 		ostringstream sumstr;
 		sumstr << sum;
 		LResult->s = sumstr.str();
+		LResult->type = TypeCheck(Operand2->type, Operand1->type, "**");
 		cout << Operand2->s << "**" << Operand1->s << "=" << sumstr.str() << endl;
 		delete Operand1;
 		delete Operand2;
@@ -944,14 +990,12 @@ void RunOperation() {
 		LResult = Operand2->next;
 		if (Operand2->s[0] == '$') { Shift(Operand2->s); Operand2->s = GetValue(Operand2->s); }
 		if (Operand2->s != "0" && Operand2->s != "false") {
-			UseSupportTid = true;
 			delete Operand1;
 			delete Operand2;
 			return;
 		}
 		ShiftPOLIZ = true;
-		ShiftUntilPOLIZ = GetNum(Operand1->s);
-		UseSupportTidElse = true;
+		ShiftUntilPOLIZ = int(GetNum(Operand1->s));
 		delete Operand1;
 		delete Operand2;
 		return;
@@ -964,14 +1008,12 @@ void RunOperation() {
 		LResult = Operand2->next;
 		if (Operand2->s[0] == '$') { Shift(Operand2->s); Operand2->s = GetValue(Operand2->s); }
 		if (Operand2->s == "0" && Operand2->s == "false") {
-			//UseSupportTid = true;
 			delete Operand1;
 			delete Operand2;
 			return;
 		}
 		ShiftPOLIZ = true;
-		ShiftUntilPOLIZ = GetNum(Operand1->s);
-		//UseSupportTidElse = true;
+		ShiftUntilPOLIZ = int(GetNum(Operand1->s));
 		delete Operand1;
 		delete Operand2;
 		return;
@@ -994,7 +1036,7 @@ void RunOperation() {
 			return;
 		}
 		ShiftPOLIZ = true;
-		ShiftUntilPOLIZ = GetNum(Operand1->s);
+		ShiftUntilPOLIZ = int(GetNum(Operand1->s));
 		delete Operand1;
 		delete Operand2;
 		return;
@@ -1006,7 +1048,7 @@ void RunOperation() {
 		LResult = Operand->next;
 		
 		ShiftPOLIZ = true;
-		ShiftUntilPOLIZ = GetNum(Operand->s);
+		ShiftUntilPOLIZ = int(GetNum(Operand->s));
 		return;
 	}
 	if (LResult->s == "switch==") {
@@ -1039,11 +1081,32 @@ void RunOperation() {
 		return;
 	}
 	if (LResult->s == ";") {
-		ClearRESULT();
+		DelRESULT();
 		cout << ";" << endl;
 		return;
 	}
-	cout << "WTF?" << LResult->s << endl;
+	if (LResult->s == "break") {
+		DelRESULT();
+		ShiftUntilPOLIZ = -1;
+		Break = true;
+		return;
+	}
+	if (LResult->s == "continue") {
+		DelRESULT();
+		ShiftUntilPOLIZ = -1;
+		return;
+	}
+	if (LResult->s == "goto") {
+		DelRESULT();
+		GoTo = LResult->s;
+		DelRESULT();
+		return;
+	}
+	if (LResult->s == "begin" || LResult->s == "end") {
+		DelRESULT();
+		return;
+	}
+	cout << "WTF? What is it ->" << LResult->s << "!!!" << endl;
 	return;
 }
 void RunPOLIZ_Special(RESULT *CurrentPosition) {
@@ -1051,12 +1114,34 @@ void RunPOLIZ_Special(RESULT *CurrentPosition) {
 	while (CurrentPosition != nullptr) {
 		LResult->s = CurrentPosition->s;
 		LResult->type = CurrentPosition->type;
+		LResult->LineNum = CurrentPosition->LineNum;
 		if (LResult->type == 4) {
 			RunOperation();
 			CurrentPosition = CurrentPosition->next;
 			if (ShiftPOLIZ) CurrentPosition = BegOfExpression;
 			while (ShiftPOLIZ && CurrentPosition != nullptr) {
 				if (CurrentPosition->ID == ShiftUntilPOLIZ) ShiftPOLIZ = false;
+				else CurrentPosition = CurrentPosition->next;
+			}
+			int depth_in = 0;
+			while (ShiftUntilPOLIZ == -1) {
+				if (CurrentPosition->s == "begin" || CurrentPosition->next == nullptr) depth_in++;
+				if (CurrentPosition->s == "end") {
+					depth_in--;
+					if (depth_in == -1) ShiftUntilPOLIZ = 0;
+				}
+				if (ShiftUntilPOLIZ == -1)  CurrentPosition = CurrentPosition->next;
+			}
+			if (Break && CurrentPosition->next != nullptr) {
+				Break = false;
+				CurrentPosition = CurrentPosition->next;
+				if (CurrentPosition != nullptr) {
+					CurrentPosition = CurrentPosition->next;
+					CurrentPosition = CurrentPosition->next;
+				}
+			}
+			while (GoTo != "NAN" && CurrentPosition != nullptr) {
+				if (CurrentPosition->s == GoTo + ":") GoTo = "NAN";
 				else CurrentPosition = CurrentPosition->next;
 			}
 			RESULT *R = new RESULT;
@@ -1074,196 +1159,17 @@ void RunPOLIZ_Special(RESULT *CurrentPosition) {
 }
 
 int position = 1;//adress
-bool pausePOLIZ = false;
 void pushPOLIZ(string s, Type type) { //add to POLIZ.txt operand/operation and its adress
 	CurrentPOLIZ->ID = position++;
 	CurrentPOLIZ->s = s;
 	CurrentPOLIZ->type = type;
+	CurrentPOLIZ->LineNum = strings;
 	CurrentPOLIZ->next = new RESULT;
 	CurrentPOLIZ = CurrentPOLIZ->next;
-
-	if (!pausePOLIZ) {
-		LResult->s = s;
-		LResult->type = type;
-
-		POLIZ << position - 1;
-		POLIZ << " type:";
-		POLIZ << type;
-		POLIZ << " ";
-		POLIZ << s << endl;
-
-		if (LResult->type == 4) {
-			RunOperation();
-		}
-		RESULT *p = LResult;
-		LResult = new RESULT;
-		LResult->next = p;
-	}
 	return;
 }
 //END of POLIZ part
 //END OF TID
-
-//STEK
-struct STEK{
-	Type type;
-	string op = "";
-	STEK *next;
-};
-static STEK *stek = new STEK;
-void push1(STEK *&stek, Type type) {
-	STEK *p = new STEK;
-	p->next = stek;
-	stek = p;
-	p->type = type;
-}
-void push2(STEK *&stek, string s) {
-	STEK *p = new STEK;
-	p->next = stek;
-	stek = p;
-	p->op = s;
-	p->type = Operation;
-}
-STEK *pop(STEK *&stek) {
-	if (stek != nullptr) {
-		STEK *q;
-		q = stek;
-		stek = stek->next;
-		q->next = nullptr;
-		return q;
-	}
-}
-void check_op(STEK *&stek) {
-	Type type1, type2;
-	string op;
-	STEK *p;
-	p = pop(stek);
-	type2 = p->type;
-	delete p;
-	p = pop(stek);
-	op = p->op;
-	delete p;
-	p = pop(stek); 
-	type1 = p->type;
-	delete p;
-	if (op == "**" || op == "**=") {
-		if ((type1 == Int || type1 == Double) && type2 == Int) {
-			push1(stek, type1);
-			return;
-		}
-	}
-	else if (op == "*" || op == "+" || op == "-"||op == "/") {
-		if ((type1 == Int || type1 == Double) && (type2 == Int || type2 == Double)) {
-			if (type1 == Double || type2 == Double) {
-				push1(stek, Double);
-				return;
-			} else {
-				push1(stek, Int);
-				return;
-			}
-		}
-	}
-	else if (op == "%" || op == "<<" || op == ">>" || op == "&" || op == "^" || op == "|" ||
-		op == "%=" || op == ">>=" || op == "<<=" || op == "&=" || op == "^=" || op == "|=") {
-		if (type1 == Int && type2 == Int) {
-			push1(stek, Int);
-			return;
-		}
-	}
-	else if (op == "."||op==".=") {
-		if (type1 == String && type2 == String) {
-			push1(stek, String);
-			return;
-		}
-	}
-	else if (op == "<" || op == ">" || op == ">=" || op == "<=") {
-		if ((type1 == Int || type1 == Double) && (type2 == Int || type2 == Double)) {
-			push1(stek, Bool);
-			return;
-		}
-	}
-	else if (op == "&&" || op == "||") {
-		if (type1 == Bool && type2 == Bool) {
-			push1(stek, Bool);
-			return;
-		}
-	}
-	else if (op == "=") {
-		if (type1 == type2) {
-			push1(stek, type2);
-			return;
-		}
-		else if ((type1 == Int || type1 == Double) && (type2 == Int || type2 == Double)) {
-			push1(stek, type2);
-			return;
-		}
-	}
-	else if (op == "-=" || op == "+=" || op == "*=" || op == "/=") {
-		if ((type1 == Int || type1 == Double) && (type2 == Int || type2 == Double)) {
-			push1(stek, type1);
-			return;
-		}
-	}
-	else if (op == "==" || op == "===" || op == "<=>" || op == "<>" || op == "!="
-		|| op == "!==") {
-		if (type1 == type2) {
-			push1(stek, Bool);
-			return;
-		}
-		else if ((type1 == Int || type1 == Double) && (type2 == Int || type2 == Double)) {
-			push1(stek, Bool);
-			return;
-		}
-	}
-	throw (3);
-}
-void check_not(STEK *&stek) {
-	Type type;
-	string op;
-	STEK *p;
-	p = pop(stek);
-	if (p->op == "++" || p->op == "--") {
-		delete p;
-		p = pop(stek);
-		if (p->type == Int) {
-			delete p;
-			push1(stek, Int);
-			return;
-		}
-	}
-	else{
-		type = p->type;
-		delete p;
-		p = pop(stek);
-		op = p->op;
-		delete p;
-		if (op == "++" || op == "--") {
-			if (type == Int) {
-				push1(stek, Int);
-				return;
-			}
-		}
-		else if (op == "!") {
-			if (type == Bool) {
-				push1(stek, Bool);
-				return;
-			}
-		}
-	}
-
-	throw (3);
-}
-void delete_elem(STEK *&stek) {
-	if (stek == nullptr)return;
-	STEK *p = stek;
-	stek = stek->next;
-	p->next = nullptr;
-	delete p;
-}
-void delete_stek(STEK *&stek) {
-	for (; stek != nullptr; delete_elem(stek));
-}
-//END OF STEK
 
 //LEXIC
 #include <iostream>
@@ -1342,6 +1248,7 @@ bool IsWord(string s) {
 //END OF LEXIC
 
 //SINTAX
+bool GoToPoint = false;
 void Program();
 void ERROR(string s);
 void Get();
@@ -1464,58 +1371,24 @@ void For()
 	Get();
 	if (lexem->s != "(") ERROR("for");
 	Get();
-	//string ID_of_Beg = ForCondition();
-	//ForConditional_Beg
+	//ForConditional_Begining
 	Expression();                          //1st Expression
-	if (stek != nullptr)
-		if (stek->next != nullptr)throw(3);
-	delete_stek(stek);
 	if (lexem->s != ";") ERROR(";");
 	Get();
-
-	pausePOLIZ = true;
-	UseSupportTid = true;
 	RESULT *BegOfFor = CurrentPOLIZ;
 	Expression();                        //2nd Expression
 	RESULT *P1 = CurrentPOLIZ;//points address A1
-	CurrentPOLIZ->s = "Address_A1";
-	CurrentPOLIZ->type = Int;
-	CurrentPOLIZ->ID = position++;
-	CurrentPOLIZ->next = new RESULT;
-	CurrentPOLIZ = CurrentPOLIZ->next;
-
-	CurrentPOLIZ->s = "!F";
-	CurrentPOLIZ->type = Operation;
-	CurrentPOLIZ->ID = position++;
-	CurrentPOLIZ->next = new RESULT;
-	CurrentPOLIZ = CurrentPOLIZ->next;
-	if (stek != nullptr)
-		if (stek->next != nullptr || stek->type != Bool)throw(3);
-	delete_stek(stek);
+	pushPOLIZ("Address_A1", Int);
+	pushPOLIZ("!F", Operation);
 	if (lexem->s != ";") ERROR(";");
 	Get();
-
 	RESULT *P2 = CurrentPOLIZ;//points address A2
-	CurrentPOLIZ->s = "Address_A2";
-	CurrentPOLIZ->type = Int;
-	CurrentPOLIZ->ID = position++;
-	CurrentPOLIZ->next = new RESULT;
-	CurrentPOLIZ = CurrentPOLIZ->next;
-
-	CurrentPOLIZ->s = "!WC";
-	CurrentPOLIZ->type = Operation;
-	CurrentPOLIZ->ID = position++;
-	CurrentPOLIZ->next = new RESULT;
-	CurrentPOLIZ = CurrentPOLIZ->next;
+	pushPOLIZ("Address_A2", Int);
+	pushPOLIZ("!WC", Operation);
 	Expression();                     //3rd Expression
-
 	ostringstream ID;
 	ID << position;//because CurrentPOLIZ hasn't been filled yet
 	P2->s = ID.str();
-	if (stek != nullptr)
-		if (stek->next != nullptr)throw(3);
-	delete_stek(stek);
-
 	ID.str("");//cleaning
 	ID << BegOfFor->ID;
 	//ForConditional_End
@@ -1523,52 +1396,26 @@ void For()
 	Get();
 	if (lexem->s == "{") {
 		Block();
-		CurrentPOLIZ->s = ID.str();
-		CurrentPOLIZ->type = Int;
-		CurrentPOLIZ->ID = position++;
-		CurrentPOLIZ->next = new RESULT;
-		CurrentPOLIZ = CurrentPOLIZ->next;
-
-		CurrentPOLIZ->s = "!WC";
-		CurrentPOLIZ->type = Operation;
-		CurrentPOLIZ->ID = position++;
-		CurrentPOLIZ->next = new RESULT;
-		CurrentPOLIZ = CurrentPOLIZ->next;
-
+		pushPOLIZ(ID.str(), Int);
+		pushPOLIZ("!WC", Operation);
 		ID.str("");//cleaning
 		ID << position;//because CurrentPOLIZ hasn't been filled yet
 		P1->s = ID.str();
-		RunPOLIZ_Special(BegOfFor);
 		DeleteUntil(L, L1);
-		UseSupportTid = false;
-		pausePOLIZ = false;
 		L1 = p;
 		return;
 	}
 	Operator();
 	Operators();
-	CurrentPOLIZ->s = ID.str();
-	CurrentPOLIZ->type = Int;
-	CurrentPOLIZ->ID = position++;
-	CurrentPOLIZ->next = new RESULT;
-	CurrentPOLIZ = CurrentPOLIZ->next;
-
-	CurrentPOLIZ->s = "!WC";
-	CurrentPOLIZ->type = Operation;
-	CurrentPOLIZ->ID = position++;
-	CurrentPOLIZ->next = new RESULT;
-	CurrentPOLIZ = CurrentPOLIZ->next;
-
+	pushPOLIZ(ID.str(), Int);
+	pushPOLIZ("!WC", Operation);
 	ID.str("");//cleaning
 	ID << position;//because CurrentPOLIZ hasn't been filled yet
 	P1->s = ID.str();
-	RunPOLIZ_Special(BegOfFor);
 	if (lexem->s != "endfor") ERROR("endfor");
 	Get();
 	if (lexem->s != ";") ERROR(";");
 	Get();
-	UseSupportTid = false;
-	pausePOLIZ = false;
 	DeleteUntil(L, L1);
 	L1 = p;
 	return;
@@ -1576,7 +1423,6 @@ void For()
 void DoWhile() {
 	Tid *p = L1;
 	L1 = L;
-	pausePOLIZ = true;
 	if (lexem->s != "do") ERROR("do");
 	RESULT *BegOFDoWhile = CurrentPOLIZ;
 	Get();
@@ -1589,28 +1435,11 @@ void DoWhile() {
 
 	ostringstream ID;
 	ID << BegOFDoWhile->ID;
-	CurrentPOLIZ->s = ID.str();
-	CurrentPOLIZ->type = Int;
-	CurrentPOLIZ->ID = position++;
-	CurrentPOLIZ->next = new RESULT;
-	CurrentPOLIZ = CurrentPOLIZ->next;
-
-	CurrentPOLIZ->s = "!T";
-	CurrentPOLIZ->type = Operation;
-	CurrentPOLIZ->ID = position++;
-	CurrentPOLIZ->next = new RESULT;
-	CurrentPOLIZ = CurrentPOLIZ->next;
-
-	if (stek != nullptr)
-	if (stek->next != nullptr || stek->type != Bool)throw(3);
-	delete_stek(stek);
+	pushPOLIZ(ID.str(), Int);
+	pushPOLIZ("!T", Operation);
 	if (lexem->s != ")") ERROR(")");
 	Get();
 
-	RunPOLIZ_Special(BegOFDoWhile);
-	pausePOLIZ = false;
-	UseSupportTid = false;
-	UseSupportTidElse = false;
 	DeleteUntil(L, L1);
 	L1 = p;
 	return;
@@ -1622,28 +1451,12 @@ void While() {
 		Get();
 		if (lexem->s != "(") ERROR("(");
 		Get();
-
-		pausePOLIZ = true;
 		RESULT *WhileBeginning_before = CurrentPOLIZ;
 		NEExpression();
-		CurrentPOLIZ->s = "Address_A1";
-		CurrentPOLIZ->type = Int;
-		CurrentPOLIZ->ID = position++;
-
 		RESULT *P1 = CurrentPOLIZ; //P1 points to Address_A1
-		CurrentPOLIZ->next = new RESULT;
-		CurrentPOLIZ = CurrentPOLIZ->next;
+		pushPOLIZ("Address_A1", Int);
+		pushPOLIZ("!F", Operation);
 
-		CurrentPOLIZ->s = "!F";
-		CurrentPOLIZ->type = Operation;
-		CurrentPOLIZ->ID = position++;
-
-		CurrentPOLIZ->next = new RESULT;
-		CurrentPOLIZ = CurrentPOLIZ->next;
-
-		if (stek != nullptr)
-			if (stek->next != nullptr || stek->type != Bool)throw(3);
-		delete_stek(stek);
 		if (lexem->s != ")") ERROR(")");
 		Get();
 		if (lexem->s == "{") {
@@ -1651,66 +1464,30 @@ void While() {
 			Block();
 
 			ID << WhileBeginning_before->ID;
-			CurrentPOLIZ->s = ID.str();
-			CurrentPOLIZ->type = Int;
-			CurrentPOLIZ->ID = position++;
-			CurrentPOLIZ->next = new RESULT;
-			CurrentPOLIZ = CurrentPOLIZ->next;
+			pushPOLIZ(ID.str(), Int);
+			pushPOLIZ("!WC", Operation);
 
-			CurrentPOLIZ->s = "!WC";
-			CurrentPOLIZ->type = Operation;
-			CurrentPOLIZ->ID = position++;
-			CurrentPOLIZ->next = new RESULT;
-			CurrentPOLIZ = CurrentPOLIZ->next;
-
-			ID << CurrentPOLIZ->ID;
+			ID.str("");//cleaning ID
+			ID << position;//because CurrentPOLIZ->ID have not been filled yet
 			P1->s = ID.str();
-
-			CopyUntil(L, L1);
- 
 			DeleteUntil(L, L1);
-			RunPOLIZ_Special(WhileBeginning_before);
-			pausePOLIZ = false;
-			UseSupportTid = false;
-			UseSupportTidElse = false;
-			DeleteAll(SupportTid);
-			SupportTid = new Tid;
-			CurrentSupport = SupportTid;
-			delete P1, WhileBeginning_before;
 			L1 = p;
 			return;
 		}
 		ostringstream ID;
 		Operator();
 		Operators();
-
+		ID << position; //beginning of initialisation P1
+		P1->s = ID.str(); // end of initialisation
+		ID.str(""); //cleaning ID
 		ID << WhileBeginning_before->ID;
-		CurrentPOLIZ->s = ID.str();
-		CurrentPOLIZ->type = Int;
-		CurrentPOLIZ->ID = position++;
-		CurrentPOLIZ->next = new RESULT;
-		CurrentPOLIZ = CurrentPOLIZ->next;
-
-		CurrentPOLIZ->s = "!WC";
-		CurrentPOLIZ->type = Operation;
-		CurrentPOLIZ->ID = position++;
-		CurrentPOLIZ->next = new RESULT;
-		CurrentPOLIZ = CurrentPOLIZ->next;
+		pushPOLIZ(ID.str(), Int);
+		pushPOLIZ("!WC", Operation);
 
 		if (lexem->s != "endwhile") ERROR("endwhile");
 		Get();
 		if (lexem->s != ";") ERROR(";");
 		Get();
-
-		RunPOLIZ_Special(WhileBeginning_before);
-		pausePOLIZ = false;
-		UseSupportTid = false;
-		UseSupportTidElse = false;
-		DeleteAll(SupportTid);
-		SupportTid = new Tid;
-		CurrentSupport = SupportTid;
-		DeleteUntil(L, L1);
-		delete P1, WhileBeginning_before;
 		L1 = p;
 		return;
 	}
@@ -1724,8 +1501,6 @@ void Else1()
 		Get();
 		Operator();
 		Operators();
-		Tid *Null = nullptr;
-		CopyElseUntil(L, L1, Null);
 		if (lexem->s != "endif") ERROR("endif");
 		Get();
 		DeleteUntil(L, L1);
@@ -1740,12 +1515,11 @@ void Else() {
 	if (lexem->s != "else")ERROR("else");
 	Get();
 	Block();
-	Tid *Null = nullptr;
-	CopyElseUntil(L, L1, Null);
 	DeleteUntil(L, L1);
 	L1 = p;
+	return;
 }
-void Case(Type SwitchType) {
+void Case() {
 	Tid *p = L1;
 	Type CaseType;
 	L1 = L;
@@ -1761,26 +1535,21 @@ void Case(Type SwitchType) {
 					if (lexem->s[i] == '.') CaseType = Double;
 				}
 			}//End of determinating
-
-			if (SwitchType == CaseType || SwitchType == Double && CaseType == Int || SwitchType == Int && CaseType == Double) {
-				pushPOLIZ(lexem->s, CaseType);
-				Get();
-				pushPOLIZ("switch==", Operation);
-				RESULT *P = CurrentPOLIZ;//points Address
-				pushPOLIZ("Address", Int);
-				pushPOLIZ("!F_switch", Operation);
-				if (lexem->s != ":") ERROR(":");
-				Get();
-				Operators();
-				ostringstream ID;
-				ID << position;//because CurrentPOLIZ->ID is empty
-				P->s = ID.str();
-				CopyUntil(L, L1);
-				DeleteUntil(L, L1);
-				L1 = p;
-				return;
-			}
-			else throw(3);
+			pushPOLIZ(lexem->s, CaseType);
+			Get();
+			pushPOLIZ("switch==", Operation);
+			RESULT *P = CurrentPOLIZ;//points Address
+			pushPOLIZ("Address", Int);
+			pushPOLIZ("!F_switch", Operation);
+			if (lexem->s != ":") ERROR(":");
+			Get();
+			Operators();
+			ostringstream ID;
+			ID << position;//because CurrentPOLIZ->ID is empty
+			P->s = ID.str();
+			DeleteUntil(L, L1);
+			L1 = p;
+			return;
 		}
 		ERROR("Const");
 	} if (lexem->s == "default") {
@@ -1801,45 +1570,33 @@ void SelectOperator()
 		if (lexem->s == "(") {
 			Get();
 			RESULT *BegOfSwitch = CurrentPOLIZ;
-			pausePOLIZ = true;
-			UseSupportTid = true;
 			ShiftSwitch = true;
 			NEExpression();
-			if (stek != nullptr)
-			if (stek->next != nullptr)throw(3);
-			Type SwitchType = stek->type;
-			delete_stek(stek);
 			if (lexem->s == ")") {
 				Get();
 				if (lexem->s == "{") {
 					Get();
-					Case(SwitchType);
+					Case();
 					while (lexem->s == "case" ||
 						lexem->s == "default") {
-						Case(SwitchType);
+						Case();
 					}
-					RunPOLIZ_Special(BegOfSwitch);
 					if (lexem->s != "}") ERROR("}");
 					Get();
 					ShiftSwitch = false;
-					UseSupportTid = false;
-					pausePOLIZ = false;
 					DeleteAll(SupportTid);
 					SupportTid = new Tid;
 					CurrentSupport = SupportTid;
 					return;
 				}
 				do {
-					Case(SwitchType);
+					Case();
 				} while (lexem->s == "case" || lexem->s == "default");
 				if (lexem->s != "endswitch") ERROR("endswitch");
 				Get();
 				if (lexem->s != ";") ERROR(";");
 				Get();
-				RunPOLIZ_Special(BegOfSwitch);
 				ShiftSwitch = false;
-				UseSupportTid = false;
-				pausePOLIZ = false;
 				return;
 			}
 			ERROR(")");
@@ -1854,15 +1611,11 @@ void ConditionalOperator() {
 		if (lexem->s != "(") ERROR("(");
 		Get();
 		RESULT *BegOfIf = CurrentPOLIZ;
-		pausePOLIZ = true;
 		NEExpression();
 		RESULT *P1 = CurrentPOLIZ; //P1 points to Address_A1
 		pushPOLIZ("Address_A1", Int);
 		pushPOLIZ("!F", Operation);
 
-		if (stek != nullptr)
-		if (stek->next != nullptr || stek->type != Bool)throw(3);
-		delete_stek(stek);
 		if (lexem->s != ")") ERROR(")");
 		Get();
 		if (lexem->s == "{") {
@@ -1876,8 +1629,6 @@ void ConditionalOperator() {
 			ostringstream ID; //beginning of initialization P1
 			ID << position; //
 			P1->s = ID.str(); //end of initialisation P1
-
-			CopyUntil(L, L1);
 			DeleteUntil(L, L1);
 			L1 = p;
 			Else();
@@ -1885,21 +1636,12 @@ void ConditionalOperator() {
 			ID << position; //beginning of initialization P2
 			P2->s = ID.str(); //end of initialisation P2
 			CurrentPOLIZ->ID = position; //because CurrentPOLIZ have not been filled yet
-
-			RunPOLIZ_Special(BegOfIf);
-			delete P1, P2, p;
-			pausePOLIZ = false;
-			UseSupportTid = false;
-			DeleteAll(SupportTid);
-			SupportTid = new Tid;
-			CurrentSupport = SupportTid;
 			return;
 		}
 		Tid *p = L1;
 		L1 = L;
 		Operator();
 		Operators();
-		CopyUntil(L, L1);
 		DeleteUntil(L, L1);
 		L1 = p;
 		
@@ -1916,14 +1658,6 @@ void ConditionalOperator() {
 		ID << position; //beginning of initialization P2
 		P2->s = ID.str(); //end of initialisation
 		CurrentPOLIZ->ID = position; //because CurrentPOLIZ have not been filled yet
-
-		RunPOLIZ_Special(BegOfIf);
-		delete P1, P2, p;
-		UseSupportTid = false;
-		pausePOLIZ = false;
-		DeleteAll(SupportTid);
-		SupportTid = new Tid;
-		CurrentSupport = SupportTid;
 		return;
 	}
 	ERROR("if");
@@ -1973,13 +1707,16 @@ void SpecOperator() {
 }
 void Block() {
 	if (lexem->s == "{") {
+		pushPOLIZ("begin", Operation);
 		Get();
 		Operator();
+		if (lexem->s == ";") Get();
 		if (lexem->s == "}") {
 			Get();
 			return;
 		}
 		Operators();
+		pushPOLIZ("end", Operation);
 		if (lexem->s != "}") ERROR("}");
 		Get();
 		return;
@@ -1993,17 +1730,11 @@ void Block() {
 void ListOfParameters()
 {
 	NEExpression();
-	if (stek != nullptr)
-	if (stek->next != nullptr)throw(3);
-	delete_stek(stek);
 	while (lexem->s == ",")
 	{
 		Get();
 		NEExpression();
 		pushPOLIZ(",", Operation);
-		if (stek != nullptr)
-		if (stek->next != nullptr)throw(3);
-		delete_stek(stek);
 	}
 }
 void FunctionCall()
@@ -2018,9 +1749,6 @@ void OutPutOperator()
 	{
 		Get();
 		Expression();
-		if (stek != nullptr)
-		if (stek->next != nullptr)throw(3);
-		delete_stek(stek);
 	}
 }
 
@@ -2061,7 +1789,6 @@ void Priority2()
 	{
 		Sign2();
 		Priority3();
-		check_op(stek);
 		pushPOLIZ("||", Operation);
 	}
 }
@@ -2072,7 +1799,6 @@ void Priority3()
 	{
 		Sign3();
 		Priority4();
-		check_op(stek);
 		pushPOLIZ("&&", Operation);
 	}
 }
@@ -2083,7 +1809,6 @@ void Priority4()
 	{
 		Sign4();
 		Priority5();
-		check_op(stek);
 		pushPOLIZ("|", Operation);
 	}
 }
@@ -2094,7 +1819,6 @@ void Priority5()
 	{
 		Sign5();
 		Priority6();
-		check_op(stek);
 		pushPOLIZ("^", Operation);
 	}
 }
@@ -2105,7 +1829,6 @@ void Priority6()
 	{
 		Sign6();
 		Priority7();
-		check_op(stek);
 		pushPOLIZ("&", Operation);
 	}
 }
@@ -2121,7 +1844,6 @@ void Priority7()
 		string OpSign = lexem->s; //sign of operation
 		Sign7();
 		Priority8();
-		check_op(stek);
 		pushPOLIZ(OpSign, Operation);
 	}
 }
@@ -2136,7 +1858,6 @@ void Priority8()
 		string OpSign = lexem->s; //sign of operation
 		Sign8();
 		Priority9();
-		check_op(stek);
 		pushPOLIZ(OpSign, Operation);
 	}
 }
@@ -2149,7 +1870,6 @@ void Priority9()
 		string OpSign = lexem->s; //sign of operation
 		Sign9();
 		Priority10();
-		check_op(stek);
 		pushPOLIZ(OpSign, Operation);
 	}
 }
@@ -2163,7 +1883,6 @@ void Priority10()
 		string OpSign = lexem->s; //sign of operation
 		Sign10();
 		Priority11();
-		check_op(stek);
 		pushPOLIZ(OpSign, Operation);
 	}
 }
@@ -2177,7 +1896,6 @@ void Priority11()
 		string OpSign = lexem->s; //sign of operation
 		Sign11();
 		Priority12();
-		check_op(stek);
 		pushPOLIZ(OpSign, Operation);
 	}
 }
@@ -2186,7 +1904,6 @@ void Priority12()
 	if (lexem->s == "!") {
 		Sign12();
 		Priority13();
-		check_not(stek);
 		pushPOLIZ("!", Operation);
 		return;
 	}
@@ -2201,7 +1918,6 @@ void Priority13()
 		string OpSign = lexem->s; //sign of operation
 		Sign13();
 		Priority14();
-		check_not(stek);
 		if (OpSign == "++") OpSign = "++Prev";//That helps us to understand which kind of operator is used (prefix or postfix)
 		else OpSign = "--Prev";               //
 		pushPOLIZ(OpSign, Operation);
@@ -2213,7 +1929,6 @@ void Priority13()
 			lexem->s == "--") {
 			string OpSign = lexem->s; //sign of operation
 			Sign13();
-			check_not(stek);
 			pushPOLIZ(OpSign, Operation);
 		}
 		return;
@@ -2227,7 +1942,6 @@ void Priority14()
 	{
 		Sign14();
 		Priority15();
-		check_op(stek);
 		pushPOLIZ("**", Operation);
 	}
 }
@@ -2244,28 +1958,25 @@ void Priority15(){
 	}
 	if (lexem->id == 3) {
 		if (lexem->s[0] == '"') {
-			push1(stek, String);
 			pushPOLIZ(lexem->s, String);
 		}
 		else if (lexem->s == "true" || lexem->s == "false") {
-			push1(stek, Bool);
 			pushPOLIZ(lexem->s, Bool);
 		}
 		else {
 			for (int i = 0; i < lexem->s.length(); i++) {
 				if (lexem->s[i] == '.') {
-					push1(stek, Double);
 					pushPOLIZ(lexem->s, Double);
 					Get();
 					return;
 				}
 			}
-			push1(stek, Int);
 			pushPOLIZ(lexem->s, Int);
 		}
 		Get(); return;
 	}
 	if (lexem->id == 2) {
+		string Name = lexem->s;
 		Get();
 		if (lexem->s == "(") {
 			Get();
@@ -2273,8 +1984,10 @@ void Priority15(){
 			return;
 		}
 		if (lexem->s == ":") {
+			pushPOLIZ(Name + ":", String);
+			GoToPoint = true;
 			Get();
-			throw(1.0);
+			return;
 		}
 		ERROR("( or :");
 	}
@@ -2288,16 +2001,18 @@ void Program()
 	if (lexem->s != "?") ERROR("?");
 	Get();
 	if (lexem->s != "php") ERROR("php");
+	pushPOLIZ("begin", Operation);
 	Get();
 	Operators();
-	if (lexem->s != ">"|| Code.eof()) ERROR(">");
+	pushPOLIZ("end", Operation);
+	if (lexem->s != ">" || Code.eof()) ERROR(">");
 	return;
 }
 void Variable() {
 	if (lexem->s == "$") {
 		Get();
 		if (lexem->id == 2) {
-			push1(stek, CheckID(lexem->s, L));
+			CheckID(lexem->s, L);
 			pushPOLIZ("$" + lexem->s, GetType(lexem->s));
 			Get();
 			return;
@@ -2333,15 +2048,10 @@ void Operators() {
 					lexem->s == "--" ||
 					lexem->id == 2 ||
 					lexem->id == 3) {
-					try {
-						Expression();
-						if (stek != nullptr)
-						if (stek->next != nullptr)throw(3);
-						delete_stek(stek);
-						if (lexem->s != ";") ERROR(";");
-						pushPOLIZ(";", Operation);
-					}
-					catch (double a) {};
+					Expression();
+					if (lexem->s != ";" && !GoToPoint) ERROR(";");
+					if (GoToPoint) GoToPoint = false;
+					else pushPOLIZ(";", Operation);
 				}
 				else
 					if (lexem->s == "int" ||
@@ -2351,19 +2061,15 @@ void Operators() {
 						Type type;
 						if (lexem->s == "int") {
 							type = Int;
-							push1(stek, Int);
 						} 
 						else if (lexem->s == "double") {
 							type = Double;
-							push1(stek, Double);
 						}
 						else if (lexem->s == "bool") {
 							type = Bool;
-							push1(stek, Bool);
 						}
 						else if (lexem->s == "string") {
 							type = String;
-							push1(stek, String);
 						}
 						do {
 							bool is_coma = false;
@@ -2376,15 +2082,12 @@ void Operators() {
 							pushPOLIZ("$" + lexem->s, type);
 							Get();
 							if (lexem->s == "=") {
-								push2(stek, "=");
 								Get();
 								NEExpression();
-								check_op(stek);
 								pushPOLIZ("=", Operation);
 							}
 							if(is_coma)  pushPOLIZ(",", Operation);
 						} while (lexem->s == ",");
-						delete_elem(stek);
 						if (lexem->s != ";") ERROR(";");
 						pushPOLIZ(";", Operation);
 						Get();
@@ -2421,15 +2124,10 @@ void Operator() {
 		lexem->s == "++" ||
 		lexem->id == 2 ||
 		lexem->id == 3) {
-		try {
 			Expression();
-			if (stek != nullptr)
-			if (stek->next != nullptr)throw(3);
-			delete_stek(stek);
-			if (lexem->s != ";") ERROR(";");
+			if (lexem->s != ";" && !GoToPoint) ERROR(";");
+			if (GoToPoint) GoToPoint = false;
 			pushPOLIZ(";", Operation);
-		}
-		catch (int a) {};//?????????????????????WTF
 		return;
 	}
 	if (lexem->s == ";") {
@@ -2444,19 +2142,15 @@ void Operator() {
 		Type type;
 		if (lexem->s == "int") {
 			type = Int;
-			push1(stek, Int);
 		}
 		else if (lexem->s == "double") {
 			type = Double;
-			push1(stek, Double);
 		}
 		else if (lexem->s == "bool") {
 			type = Bool;
-			push1(stek, Bool);
 		}
 		else if (lexem->s == "string") {
 			type = String;
-			push1(stek, String);
 		}
 		do {
 			bool is_coma = false;
@@ -2469,15 +2163,12 @@ void Operator() {
 			pushPOLIZ("$" + lexem->s, type);
 			Get();
 			if (lexem->s == "=") {
-				push2(stek, "=");
 				Get();
 				NEExpression();
-				check_op(stek);
 				pushPOLIZ("=", Operation);
 			}
 			if(is_coma) pushPOLIZ(",", Operation);
 		} while (lexem->s == ",");
-		delete_elem(stek);
 		if (lexem->s != ";") ERROR(";");
 		Get();
 		return;
@@ -2514,7 +2205,6 @@ void NEExpression()
 		string OpSign = lexem->s;
 		Sign1();
 		NEExpression();
-		check_op(stek);
 		pushPOLIZ(OpSign, Operation);
 	}
 	return;
@@ -2539,7 +2229,6 @@ void Sign1() {
 		lexem->s == "^=" ||
 		lexem->s == "<<=" ||
 		lexem->s == ">>=") {
-		push2(stek, lexem->s);
 		Get();
 		return;
 	}
@@ -2547,7 +2236,6 @@ void Sign1() {
 }
 void Sign2() {
 	if (lexem->s == "||") {
-		push2(stek, lexem->s);
 		Get();
 		return;
 	}
@@ -2555,7 +2243,6 @@ void Sign2() {
 }
 void Sign3() {
 	if (lexem->s == "&&") {
-		push2(stek, lexem->s);
 		Get();
 		return;
 	}
@@ -2563,7 +2250,6 @@ void Sign3() {
 }
 void Sign4() {
 	if (lexem->s == "|") {
-		push2(stek, lexem->s);
 		Get();
 		return;
 	}
@@ -2571,7 +2257,6 @@ void Sign4() {
 }
 void Sign5() {
 	if (lexem->s == "^") {
-		push2(stek, lexem->s);
 		Get();
 		return;
 	}
@@ -2579,7 +2264,6 @@ void Sign5() {
 }
 void Sign6() {
 	if (lexem->s == "&") {
-		push2(stek, lexem->s);
 		Get();
 		return;
 	}
@@ -2591,7 +2275,6 @@ void Sign7() {
 		lexem->s == "===" ||
 		lexem->s == "!==" ||
 		lexem->s == "<=>") {
-		push2(stek, lexem->s);
 		Get();
 		return;
 	}
@@ -2602,7 +2285,6 @@ void Sign8() {
 		lexem->s == ">" ||
 		lexem->s == "<=" ||
 		lexem->s == ">=") {
-		push2(stek, lexem->s);
 		Get();
 		return;
 	}
@@ -2611,7 +2293,6 @@ void Sign8() {
 void Sign9() {
 	if (lexem->s == "<<" ||
 		lexem->s == ">>") {
-		push2(stek, lexem->s);
 		Get();
 		return;
 	}
@@ -2621,7 +2302,6 @@ void Sign10() {
 	if (lexem->s == "+" ||
 		lexem->s == "-" ||
 		lexem->s == ".") {
-		push2(stek, lexem->s);
 		Get();
 		return;
 	}
@@ -2631,7 +2311,6 @@ void Sign11() {
 	if (lexem->s == "*" ||
 		lexem->s == "/" ||
 		lexem->s == "%") {
-		push2(stek, lexem->s);
 		Get();
 		return;
 	}
@@ -2639,7 +2318,6 @@ void Sign11() {
 }
 void Sign12() {
 	if (lexem->s == "!") {
-		push2(stek, lexem->s);
 		Get();
 		return;
 	}
@@ -2648,7 +2326,6 @@ void Sign12() {
 void Sign13() {
 	if (lexem->s == "++" ||
 		lexem->s == "--") {
-		push2(stek, lexem->s);
 		Get();
 		return;
 	}
@@ -2656,7 +2333,6 @@ void Sign13() {
 }
 void Sign14() {
 	if (lexem->s == "**") {
-		push2(stek, lexem->s);
 		Get();
 		return;
 	}
@@ -2665,8 +2341,8 @@ void Sign14() {
 
 void GotoAndChildren() {
 	if (lexem->s == "return") { Return(); if (lexem->s != ";") ERROR(";"); Get(); return; }
-	if (lexem->s == "break") { Get(); if (lexem->s != ";") ERROR(";"); Get(); return; }
-	if (lexem->s == "continue") { Get(); if (lexem->s != ";") ERROR(";"); Get(); return; }
+	if (lexem->s == "break") { pushPOLIZ("break", Operation); Get(); if (lexem->s != ";") ERROR(";"); Get(); return; }
+	if (lexem->s == "continue") { pushPOLIZ("continue", Operation); Get(); if (lexem->s != ";") ERROR(";"); Get(); return; }
 	if (lexem->s == "goto") { Goto(); if (lexem->s != ";") ERROR(";"); Get(); return; }
 	ERROR("return or break or continue or goto");
 }
@@ -2674,9 +2350,6 @@ void Return() {
 	if (lexem->s == "return") {
 		Get();
 		Expression();
-		if (stek != nullptr)
-		if (stek->next != nullptr)throw(3);
-		delete_stek(stek);
 		return;
 	}
 }
@@ -2684,9 +2357,12 @@ void Goto() {
 	if (lexem->s == "goto") {
 		Get();
 		if (lexem->id == 2) {
+			pushPOLIZ(lexem->s, String);
+			pushPOLIZ("goto", Operation);
 			Get();
 			return;
 		}
+		ERROR("name in goto");
 	}
 }
 //END OF SINTAX
@@ -2701,11 +2377,10 @@ void OutTID() {
 int main() {
 	ifstream fin("D:\\IT_files\\Compilator\\Files\\Program.txt");
 	ofstream fout("D:\\IT_files\\Compilator\\Files\\Code.txt");
-	char x, a;
+	char x;// , a;
 	string s;
 	int str = 0;
 	states state = Start;
-	stek = nullptr;
 	for (;;) {
 		switch (state) {
 		case Start:
@@ -2858,11 +2533,10 @@ sintax:fout.close();
 	//Beginning of SyntaxAnalyser
 	try {
 		Program();
+		RunPOLIZ_Special(MainPOLIZ);
 	}
 	catch (string s) {
-		cout << "Error in string " << strings << "\nExpect: " << s << "\nGet: " << lexem->s << "\n";
-		//OutTID();
-		delete_stek(stek);
+		cout << "Error in string " << strings << "\nExpect: " << s << "\nGet: " << lexem->s << endl;
 		DeleteAll(L);
 		delete lexem;
 		Code.close();
@@ -2873,20 +2547,22 @@ sintax:fout.close();
 		switch (x)
 		{
 		case 1: {
-			cout << "Error in string " << strings << endl << lexem->s << " is initialized saveral times";
+			cout << "Error in string " << strings << endl << lexem->s << " is initialized saveral times" << endl;
 			break;
 		}
 		case 2: {
-			cout << "Error in string " << strings << endl << lexem->s << " isn't initialized";
+			cout << "Error in string " << strings << endl << lexem->s << " isn't initialized" << endl;
 			break;
 		}
 		case 3: {
-			cout << "Error in string " << strings << endl << "TYPE ERROR";
+			cout << "Error in string " << LineNum << endl << "TYPE ERROR" << endl;
 			break;
+		}
+		case 0: {
+			cout << "Error in string" << LineNum << endl << "Devision by zero" << endl;
 		}
 		}	
 		delete lexem;
-		delete_stek(stek);
 		DeleteAll(L);
 		Code.close();
 		system("pause");
@@ -2894,7 +2570,6 @@ sintax:fout.close();
 	}
 	delete lexem;
 	POLIZ.close();
-	delete_stek(stek);
 	ClearRESULT();
 	DeleteAll(L);
 	Code.close();
