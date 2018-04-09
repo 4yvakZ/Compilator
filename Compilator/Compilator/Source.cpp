@@ -232,7 +232,7 @@ void RunOperation() {
 		ChangeVar(Operand2->s, Operand1->s);
 		LResult->s = Operand1->s;
 		LResult->type = TypeCheck(Operand2->type, Operand1->type, "=");
-		cout << Operand2->s << " = " << Operand1->s << endl;
+		//cout << Operand2->s << " = " << Operand1->s << endl;
 		delete Operand1;
 		delete Operand2;
 		return;
@@ -254,7 +254,7 @@ void RunOperation() {
 		ChangeVar(Operand2Name, ostr.str());
 		LResult->s = ostr.str();
 		LResult->type = TypeCheck(Operand2->type, Operand1->type, "+=");
-		cout << Operand2Name << " = " << ostr.str() << endl;
+		//cout << Operand2Name << " = " << ostr.str() << endl;
 		delete Operand1;
 		delete Operand2;
 		return;
@@ -273,7 +273,7 @@ void RunOperation() {
 		ostringstream strsum;
 		strsum << sum;
 		ChangeVar(Operand2Name, strsum.str());
-		cout << Operand2Name << " = " << strsum.str() << endl;
+		//cout << Operand2Name << " = " << strsum.str() << endl;
 		LResult->s = strsum.str();
 		LResult->type = TypeCheck(Operand2->type, Operand1->type, "-=");
 		delete Operand1;
@@ -294,7 +294,7 @@ void RunOperation() {
 		ostringstream strsum;
 		strsum << sum;
 		ChangeVar(Operand2Name, strsum.str());
-		cout << Operand2Name << " = " << strsum.str() << endl;
+		//cout << Operand2Name << " = " << strsum.str() << endl;
 		LResult->s = strsum.str();
 		LResult->type = TypeCheck(Operand2->type, Operand1->type, "*=");
 		delete Operand1;
@@ -318,7 +318,7 @@ void RunOperation() {
 		ostringstream strsum;
 		strsum << sum;
 		ChangeVar(Operand2Name, strsum.str());
-		cout << Operand2Name << " = " << strsum.str() << endl;
+		//cout << Operand2Name << " = " << strsum.str() << endl;
 		LResult->s = strsum.str();
 		LResult->type = TypeCheck(Operand2->type, Operand1->type, "**=");
 		delete Operand1;
@@ -340,7 +340,7 @@ void RunOperation() {
 		ostringstream strsum;
 		strsum << sum;
 		ChangeVar(Operand2Name, strsum.str());
-		cout << Operand2Name << " = " << strsum.str() << endl;
+		//cout << Operand2Name << " = " << strsum.str() << endl;
 		LResult->s = strsum.str();
 		LResult->type = TypeCheck(Operand2->type, Operand1->type, "/=");
 		delete Operand1;
@@ -360,7 +360,7 @@ void RunOperation() {
 		Operand2->s = GetValue(Operand2->s);
 		string sum = Operand2->s.erase(Operand2->s.length()-1,1) + Operand1->s.erase(0,1);
 		ChangeVar(Operand2Name, sum);
-		cout << Operand2Name << " = " << sum << endl;
+		//cout << Operand2Name << " = " << sum << endl;
 		LResult->s = sum;
 		LResult->type = TypeCheck(Operand2->type, Operand1->type, ".=");
 		delete Operand1;
@@ -382,7 +382,7 @@ void RunOperation() {
 		ostringstream strsum;
 		strsum << sum;
 		ChangeVar(Operand2Name, strsum.str());
-		cout << Operand2Name << " = " << strsum.str() << endl;
+		//cout << Operand2Name << " = " << strsum.str() << endl;
 		LResult->s = strsum.str();
 		LResult->type = TypeCheck(Operand2->type, Operand1->type, "%=");
 		delete Operand1;
@@ -403,7 +403,7 @@ void RunOperation() {
 		ostringstream strsum;
 		strsum << sum;
 		ChangeVar(Operand2Name, strsum.str());
-		cout << Operand2Name << " = " << strsum.str() << endl;
+		//cout << Operand2Name << " = " << strsum.str() << endl;
 		LResult->s = strsum.str();
 		LResult->type = TypeCheck(Operand2->type, Operand1->type, "&=");
 		delete Operand1;
@@ -424,7 +424,7 @@ void RunOperation() {
 		ostringstream strsum;
 		strsum << sum;
 		ChangeVar(Operand2Name, strsum.str());
-		cout << Operand2Name << " = " << strsum.str() << endl;
+		//cout << Operand2Name << " = " << strsum.str() << endl;
 		LResult->s = strsum.str();
 		LResult->type = TypeCheck(Operand2->type, Operand1->type, "|=");
 		delete Operand1;
@@ -445,7 +445,7 @@ void RunOperation() {
 		ostringstream strsum;
 		strsum << sum;
 		ChangeVar(Operand2Name, strsum.str());
-		cout << Operand2Name << " = " << strsum.str() << endl;
+		//cout << Operand2Name << " = " << strsum.str() << endl;
 		LResult->s = strsum.str();
 		LResult->type = TypeCheck(Operand2->type, Operand1->type, "^=");
 		delete Operand1;
@@ -466,7 +466,7 @@ void RunOperation() {
 		ostringstream strsum;
 		strsum << sum;
 		ChangeVar(Operand2Name, strsum.str());
-		cout << Operand2Name << " = " << strsum.str() << endl;
+		//cout << Operand2Name << " = " << strsum.str() << endl;
 		LResult->s = strsum.str();
 		LResult->type = TypeCheck(Operand2->type, Operand1->type, "<<=");
 		delete Operand1;
@@ -487,7 +487,7 @@ void RunOperation() {
 		ostringstream strsum;
 		strsum << sum;
 		ChangeVar(Operand2Name, strsum.str());
-		cout << Operand2Name << " = " << strsum.str() << endl;
+		//cout << Operand2Name << " = " << strsum.str() << endl;
 		LResult->s = strsum.str();
 		LResult->type = TypeCheck(Operand2->type, Operand1->type, ">>=");
 		delete Operand1;
@@ -669,7 +669,7 @@ void RunOperation() {
 		LResult->next = Operand2->next;
 		if (Operand1->s[0] == '$') { Shift(Operand1->s); Operand1->s = GetValue(Operand1->s); }
 		if (Operand2->s[0] == '$') { Shift(Operand2->s); Operand2->s = GetValue(Operand2->s); }
-		if (GetNum(Operand1->s) < GetNum(Operand2->s)) LResult->s = "true";
+		if (GetNum(Operand2->s) < GetNum(Operand1->s)) LResult->s = "true";
 		else LResult->s = "false";
 		LResult->type = TypeCheck(Operand2->type, Operand1->type, "<");
 		delete Operand1;
@@ -760,7 +760,7 @@ void RunOperation() {
 		delete Operand2;
 		return;
 	}
-	if (LResult->s == "+") {
+	if (LResult->s == "+"){
 		LineNum = LResult->LineNum;
 		DelRESULT();
 		RESULT *Operand1 = LResult;
@@ -774,7 +774,7 @@ void RunOperation() {
 		ostr << sum;
 		LResult->s = ostr.str();
 		LResult->type = TypeCheck(Operand2->type, Operand1->type, "+");
-		cout << Operand2->s << "+" << Operand1->s << "=" << ostr.str() << endl;
+		//cout << Operand2->s << "+" << Operand1->s << "=" << ostr.str() << endl;
 		delete Operand1;
 		delete Operand2;
 		return;
@@ -793,7 +793,7 @@ void RunOperation() {
 		ostr << sum;
 		LResult->s = ostr.str();
 		LResult->type = TypeCheck(Operand2->type, Operand1->type, "-");
-		cout << Operand2->s << "-" << Operand1->s << "=" << ostr.str() << endl;
+		//cout << Operand2->s << "-" << Operand1->s << "=" << ostr.str() << endl;
 		delete Operand1;
 		delete Operand2;
 		return;
@@ -809,7 +809,7 @@ void RunOperation() {
 		if (Operand2->s[0] == '$') { Shift(Operand2->s); Operand2->s = GetValue(Operand2->s); }
 		LResult->s = Operand2->s.erase(Operand2->s.length()-1,1) + Operand1->s.erase(0,1);
 		LResult->type = TypeCheck(Operand2->type, Operand1->type, ".");
-		cout << Operand2->s << "+" << Operand1->s << "=" << LResult->s << endl;
+		//cout << Operand2->s << "+" << Operand1->s << "=" << LResult->s << endl;
 		delete Operand1;
 		delete Operand2;
 		return;
@@ -828,7 +828,7 @@ void RunOperation() {
 		ostr << sum;
 		LResult->s = ostr.str();
 		LResult->type = TypeCheck(Operand2->type, Operand1->type, "*");
-		cout << Operand2->s << "*" << Operand1->s << "=" << ostr.str() << endl;
+		//cout << Operand2->s << "*" << Operand1->s << "=" << ostr.str() << endl;
 		delete Operand1;
 		delete Operand2;
 		return;
@@ -848,7 +848,7 @@ void RunOperation() {
 		ostr << sum;
 		LResult->s = ostr.str();
 		LResult->type = TypeCheck(Operand2->type, Operand1->type, "/");
-		cout << Operand2->s << "/" << Operand1->s << "=" << ostr.str() << endl;
+		//cout << Operand2->s << "/" << Operand1->s << "=" << ostr.str() << endl;
 		delete Operand1;
 		delete Operand2;
 		return;
@@ -868,7 +868,7 @@ void RunOperation() {
 		ostr << sum;
 		LResult->s = ostr.str();
 		LResult->type = TypeCheck(Operand2->type, Operand1->type, "%");
-		cout << Operand2->s << "%" << Operand1->s << "=" << ostr.str() << endl;
+		//cout << Operand2->s << "%" << Operand1->s << "=" << ostr.str() << endl;
 		delete Operand1;
 		delete Operand2;
 		return;
@@ -901,7 +901,7 @@ void RunOperation() {
 		ChangeVar(OperandName, sumstr.str());
 		LResult->s = Operand->s;
 		LResult->type = TypeCheck(Bool, Operand->type, "++");
-		cout << OperandName << " = " << sumstr.str() << endl;
+		//cout << OperandName << " = " << sumstr.str() << endl;
 		delete Operand;
 		return;
 	}
@@ -920,7 +920,7 @@ void RunOperation() {
 		ChangeVar(OperandName, sumstr.str());
 		LResult->s = Operand->s;
 		LResult->type = TypeCheck(Bool, Operand->type, "--");
-		cout << OperandName << " = " << sumstr.str() << endl;
+		//cout << OperandName << " = " << sumstr.str() << endl;
 		delete Operand;
 		return;
 	}
@@ -939,7 +939,7 @@ void RunOperation() {
 		ChangeVar(OperandName, sumstr.str());
 		LResult->s = sumstr.str();
 		LResult->type = TypeCheck(Bool, Operand->type, "++Prev");
-		cout << OperandName << " = " << LResult->s << endl;
+		//cout << OperandName << " = " << LResult->s << endl;
 		delete Operand;
 		return;
 	}
@@ -958,7 +958,7 @@ void RunOperation() {
 		ChangeVar(OperandName, sumstr.str());
 		LResult->s = sumstr.str();
 		LResult->type = TypeCheck(Bool, Operand->type, "--Prev");
-		cout << OperandName << " = " << LResult->s << endl;
+		//cout << OperandName << " = " << LResult->s << endl;
 		delete Operand;
 		return;
 	}
@@ -977,7 +977,7 @@ void RunOperation() {
 		sumstr << sum;
 		LResult->s = sumstr.str();
 		LResult->type = TypeCheck(Operand2->type, Operand1->type, "**");
-		cout << Operand2->s << "**" << Operand1->s << "=" << sumstr.str() << endl;
+		//cout << Operand2->s << "**" << Operand1->s << "=" << sumstr.str() << endl;
 		delete Operand1;
 		delete Operand2;
 		return;
@@ -1007,7 +1007,7 @@ void RunOperation() {
 		LResult = new RESULT;
 		LResult = Operand2->next;
 		if (Operand2->s[0] == '$') { Shift(Operand2->s); Operand2->s = GetValue(Operand2->s); }
-		if (Operand2->s == "0" && Operand2->s == "false") {
+		if (Operand2->s == "0" || Operand2->s == "false") {
 			delete Operand1;
 			delete Operand2;
 			return;
@@ -1046,7 +1046,6 @@ void RunOperation() {
 		RESULT *Operand = LResult;
 		LResult = new RESULT;
 		LResult = Operand->next;
-		
 		ShiftPOLIZ = true;
 		ShiftUntilPOLIZ = int(GetNum(Operand->s));
 		return;
@@ -1082,7 +1081,6 @@ void RunOperation() {
 	}
 	if (LResult->s == ";") {
 		DelRESULT();
-		cout << ";" << endl;
 		return;
 	}
 	if (LResult->s == "break") {
@@ -1103,6 +1101,24 @@ void RunOperation() {
 		return;
 	}
 	if (LResult->s == "begin" || LResult->s == "end") {
+		DelRESULT();
+		return;
+	}
+	if (LResult->s == "echo") {
+		DelRESULT();
+		if (LResult->s[0] == '$') {
+			Shift(LResult->s); 
+			LResult->s = GetValue(LResult->s); 
+		}
+		string str = LResult->s;
+		if (str[0] = '"') {
+			for (int i = 1; i < str.length() - 1; i++) {
+				cout << str[i];
+			}
+		}
+		else {
+			cout << LResult->s;
+		}
 		DelRESULT();
 		return;
 	}
@@ -1166,6 +1182,10 @@ void pushPOLIZ(string s, Type type) { //add to POLIZ.txt operand/operation and i
 	CurrentPOLIZ->LineNum = strings;
 	CurrentPOLIZ->next = new RESULT;
 	CurrentPOLIZ = CurrentPOLIZ->next;
+
+	POLIZ << s << " ";
+	POLIZ << type << endl;
+
 	return;
 }
 //END of POLIZ part
@@ -1385,8 +1405,14 @@ void For()
 	RESULT *P2 = CurrentPOLIZ;//points address A2
 	pushPOLIZ("Address_A2", Int);
 	pushPOLIZ("!WC", Operation);
+	ostringstream ID3rd;
+	ID3rd << position;
 	Expression();                     //3rd Expression
 	ostringstream ID;
+	ID << BegOfFor->ID;
+	pushPOLIZ(ID.str(), Int);
+	pushPOLIZ("!WC", Operation);
+	ID.str(""); //cleaning
 	ID << position;//because CurrentPOLIZ hasn't been filled yet
 	P2->s = ID.str();
 	ID.str("");//cleaning
@@ -1396,7 +1422,7 @@ void For()
 	Get();
 	if (lexem->s == "{") {
 		Block();
-		pushPOLIZ(ID.str(), Int);
+		pushPOLIZ(ID3rd.str(), Int);
 		pushPOLIZ("!WC", Operation);
 		ID.str("");//cleaning
 		ID << position;//because CurrentPOLIZ hasn't been filled yet
@@ -1407,7 +1433,7 @@ void For()
 	}
 	Operator();
 	Operators();
-	pushPOLIZ(ID.str(), Int);
+	pushPOLIZ(ID3rd.str(), Int);
 	pushPOLIZ("!WC", Operation);
 	ID.str("");//cleaning
 	ID << position;//because CurrentPOLIZ hasn't been filled yet
@@ -1749,6 +1775,7 @@ void OutPutOperator()
 	{
 		Get();
 		Expression();
+		pushPOLIZ("echo", Operation);
 	}
 }
 
@@ -2533,6 +2560,7 @@ sintax:fout.close();
 	//Beginning of SyntaxAnalyser
 	try {
 		Program();
+		POLIZ.close();
 		RunPOLIZ_Special(MainPOLIZ);
 	}
 	catch (string s) {
@@ -2569,7 +2597,6 @@ sintax:fout.close();
 		return 0;
 	}
 	delete lexem;
-	POLIZ.close();
 	ClearRESULT();
 	DeleteAll(L);
 	Code.close();

@@ -1,11 +1,14 @@
 <?php
-bool $a = false;
-goto Pos;
 int $g = 10;
-while(!$a){
-$g++;
-if($g == 15) break; else; endif
+for($g = 0; $g < 20; $g++){
+if($g == 19){
+	echo $g;}
+	else{;}
+	echo $g;
 }
-Pos :
-$a = true;
+int $i;
+for( $i = 0 ; $i < 5 ; $i++ ){
+echo "kek" . "lol";
+echo $i;
+}
 >
